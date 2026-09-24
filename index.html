@@ -1866,7 +1866,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       });
       html += '</select>';
       html += '<button type="button" class="btn btn-navy2 hist-quote-pdf-btn">📄 PDF</button>';
-      html += '<button type="button" class="btn btn-orange hist-quote-wa-btn">📲 Kirim WA</button>';
+      var waNum = normalizeWa(d.custKontak);
+      if (waNum) {
+        var waUrl = 'https://wa.me/' + waNum + '?text=' + encodeURIComponent(buildQuotationWaText(d));
+        html += '<a class="btn btn-orange hist-quote-wa-btn" href="' + waUrl + '" target="_blank" rel="noopener">📲 Kirim WA</a>';
+      } else {
+        html += '<button type="button" class="btn btn-orange" disabled style="opacity:0.5;cursor:not-allowed;">📲 No WA kosong</button>';
+      }
       if (canConvert) html += '<button type="button" class="btn btn-outline hist-convert-btn">🧾 Convert Invoice</button>';
       html += '<button type="button" class="btn btn-outline hist-delete-btn">🗑️ Hapus</button>';
       html += '</div></div>';
@@ -1895,7 +1901,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       });
       html += '</select>';
       html += '<button type="button" class="btn btn-navy2 hist-invoice-pdf-btn">📄 PDF</button>';
-      html += '<button type="button" class="btn btn-orange hist-invoice-wa-btn">📲 Kirim WA</button>';
+      var waNumInv = normalizeWa(d.custKontak);
+      if (waNumInv) {
+        var waUrlInv = 'https://wa.me/' + waNumInv + '?text=' + encodeURIComponent(buildInvoiceWaText(d));
+        html += '<a class="btn btn-orange hist-invoice-wa-btn" href="' + waUrlInv + '" target="_blank" rel="noopener">📲 Kirim WA</a>';
+      } else {
+        html += '<button type="button" class="btn btn-orange" disabled style="opacity:0.5;cursor:not-allowed;">📲 No WA kosong</button>';
+      }
       html += '<button type="button" class="btn btn-outline hist-delete-invoice-btn">🗑️ Hapus</button>';
       html += '</div></div>';
     });
@@ -2089,11 +2101,11 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
         downloadQuotationPdfFromData(docSnap.data());
       });
     } else if (waBtn) {
+      // Anchor <a> sudah membuka WhatsApp (browser handle default action).
+      // Tugas kita: kalau status masih draft, auto-set jadi 'terkirim'.
       db.collection('quotations').doc(id).get().then(function(docSnap){
         var d = docSnap.data();
-        if (!d.custKontak) { showToast('Nomor customer kosong'); return; }
-        openWaSend(d.custKontak, buildQuotationWaText(d));
-        if ((d.status || 'draft') === 'draft') {
+        if (d && (d.status || 'draft') === 'draft') {
           db.collection('quotations').doc(id).update({status: 'terkirim'}).catch(function(){});
         }
       });
@@ -2136,13 +2148,9 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       db.collection('invoices').doc(id).get().then(function(docSnap){
         downloadInvoicePdf(docSnap.data());
       });
-    } else if (waBtn) {
-      db.collection('invoices').doc(id).get().then(function(docSnap){
-        var inv = docSnap.data();
-        if (!inv.custKontak) { showToast('Nomor customer kosong'); return; }
-        openWaSend(inv.custKontak, buildInvoiceWaText(inv));
-      });
     }
+    // Kirim WA Invoice: anchor <a> sudah membuka WhatsApp,
+    // tidak perlu action tambahan.
   });
   histInvoiceList.addEventListener('change', function(e){
     if (!e.target.classList.contains('hist-payment-select')) return;
