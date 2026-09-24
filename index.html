@@ -125,6 +125,29 @@
 
   .section-divider{display:flex;align-items:center;gap:12px;margin:28px 0 16px;color:var(--ocean);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
   .section-divider::before,.section-divider::after{content:'';flex:1;height:1.5px;background:linear-gradient(90deg,transparent,var(--ocean),transparent);}
+
+  .hist-tabs{display:flex;gap:8px;margin-bottom:12px;}
+  .hist-tab{flex:1;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;padding:9px 10px;border-radius:9px;border:1.5px solid var(--navy);background:#fff;color:var(--navy);cursor:pointer;}
+  .hist-tab.active{background:var(--navy);color:#fff;}
+  .hist-empty{font-size:12px;color:var(--slate);text-align:center;padding:20px 10px;}
+  .hist-card{background:#fff;border:1px solid #E4ECF5;border-radius:12px;padding:12px 14px;margin-bottom:10px;}
+  .hist-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;}
+  .hist-no{font-family:'Poppins',sans-serif;font-weight:700;font-size:12.5px;color:var(--navy);}
+  .hist-date{font-size:10px;color:var(--slate);}
+  .hist-cust{font-size:12px;color:var(--navy);margin-bottom:4px;}
+  .hist-grand{font-size:14px;font-weight:800;color:var(--navy);font-family:'Poppins',sans-serif;margin-bottom:8px;}
+  .hist-badge{display:inline-block;font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.3px;padding:3px 8px;border-radius:999px;}
+  .hist-badge-draft{background:#E7ECF2;color:var(--slate);}
+  .hist-badge-terkirim{background:#DDEBFB;color:var(--ocean);}
+  .hist-badge-deal{background:#DFF3E6;color:#1E8E4F;}
+  .hist-badge-batal{background:#FDECEA;color:#C0392B;}
+  .hist-badge-belum{background:#FDECEA;color:#C0392B;}
+  .hist-badge-dp{background:#FFF3E0;color:#B4690E;}
+  .hist-badge-lunas{background:#DFF3E6;color:#1E8E4F;}
+  .hist-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:6px;}
+  .hist-row select{font-size:11.5px;padding:6px 8px;border:1px solid #D7E2EE;border-radius:7px;background:#fff;color:var(--navy);}
+  .hist-row .btn{flex:none;padding:8px 12px;font-size:11px;}
+  .hist-ref{font-size:10.5px;color:var(--slate);margin-bottom:4px;}
 </style>
 </head>
 <body>
@@ -286,6 +309,22 @@
         <button type="button" class="btn btn-navy2" id="btn-download-ship-pdf">📄 Download PDF</button>
         <button type="button" class="btn btn-orange" id="btn-copy-ship-wa">📋 Copy Teks WA</button>
       </div>
+    </div>
+
+    <!-- ═══ RIWAYAT QUOTATION & INVOICE ═══ -->
+    <div class="section-divider">🗂️ Riwayat &amp; Invoice</div>
+    <p class="intro">Quotation yang di-generate otomatis tersimpan di sini (tersinkron ke semua device tim). Ubah status, hapus yang batal, atau convert ke invoice kalau sudah deal.</p>
+
+    <div class="hist-tabs">
+      <button type="button" class="hist-tab active" data-histtab="quotation">📋 Quotation</button>
+      <button type="button" class="hist-tab" data-histtab="invoice">🧾 Invoice</button>
+    </div>
+
+    <div id="hist-quotation-panel">
+      <div id="hist-quotation-list"><p class="hist-empty">Memuat riwayat…</p></div>
+    </div>
+    <div id="hist-invoice-panel" hidden>
+      <div id="hist-invoice-list"><p class="hist-empty">Memuat riwayat…</p></div>
     </div>
 
     <div class="footer-note">🔒 Untuk akses internal tim D.Link — jangan dibagikan ke publik.</div>
@@ -808,6 +847,26 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
 </script>
 
+<!-- ═══ FIREBASE (riwayat quotation & invoice, tersinkron antar device) ═══ -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script>
+  var firebaseConfig = {
+    apiKey: "AIzaSyDEwvZQTD1B0IkhYpTWrgRvtx6j0vGAVLc",
+    authDomain: "dlink-system.firebaseapp.com",
+    projectId: "dlink-system",
+    storageBucket: "dlink-system.firebasestorage.app",
+    messagingSenderId: "687760365228",
+    appId: "1:687760365228:web:1a5904cabd320a77b8b109"
+  };
+  var fbApp = firebase.initializeApp(firebaseConfig);
+  var db = firebase.firestore();
+  var fbReady = firebase.auth().signInAnonymously().catch(function(err){
+    console.error('Firebase auth gagal:', err);
+  });
+</script>
+
 <script>
 (function(){
   var itemList = document.getElementById('item-list');
@@ -1029,6 +1088,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       totalBarang: totalBarang, ongkirCustomer: ongkirCustomer, domestik: domestik,
       grand: grand, noteText: noteText
     };
+    saveQuotationToHistory('barang', lastQuoteData);
 
     var lines = [];
     lines.push('*QUOTATION D.LINK CARGO*');
@@ -1361,6 +1421,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       custName:custName, custKontak:custKontak, items:items,
       totalDasar:totalDasar, totalBrand:totalBrand, grand:grand, noteText:noteText
     };
+    saveQuotationToHistory('ongkir', lastShipQuoteData);
 
     var lines = [];
     lines.push('*QUOTATION ONGKIR D.LINK CARGO*');
@@ -1508,6 +1569,519 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
   });
 
   addShipItem();
+
+  // ═══ RIWAYAT QUOTATION & INVOICE (Firebase) ═══
+  var histQuotationList = document.getElementById('hist-quotation-list');
+  var histInvoiceList = document.getElementById('hist-invoice-list');
+  var histQuotationPanel = document.getElementById('hist-quotation-panel');
+  var histInvoicePanel = document.getElementById('hist-invoice-panel');
+  var histTabs = document.querySelectorAll('.hist-tab');
+
+  histTabs.forEach(function(tab){
+    tab.addEventListener('click', function(){
+      histTabs.forEach(function(t){ t.classList.remove('active'); });
+      tab.classList.add('active');
+      var which = tab.getAttribute('data-histtab');
+      histQuotationPanel.hidden = which !== 'quotation';
+      histInvoicePanel.hidden = which !== 'invoice';
+    });
+  });
+
+  var STATUS_LABEL = {draft:'Draft', terkirim:'Terkirim', deal:'Deal', batal:'Batal'};
+  var PAYMENT_LABEL = {belum:'Belum Bayar', dp:'DP', lunas:'Lunas'};
+
+  function genInvoiceNo(){
+    var d = new Date();
+    return 'DLI-' + d.getFullYear() + pad(d.getMonth()+1) + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
+  }
+
+  function normalizeWa(phone){
+    if (!phone) return '';
+    var p = String(phone).replace(/[^0-9+]/g, '');
+    if (p.charAt(0) === '+') p = p.slice(1);
+    if (p.indexOf('0') === 0) p = '62' + p.slice(1);
+    else if (p.indexOf('62') !== 0 && p.length > 0) p = '62' + p;
+    return p;
+  }
+
+  function openWaSend(phone, text){
+    var num = normalizeWa(phone);
+    if (!num) { showToast('Nomor customer kosong / tidak valid'); return; }
+    var url = 'https://wa.me/' + num + '?text=' + encodeURIComponent(text);
+    window.open(url, '_blank');
+  }
+
+  function buildQuotationWaText(d){
+    var lines = [];
+    if (d.calcType === 'barang') {
+      lines.push('*QUOTATION D.LINK CARGO*');
+      lines.push(d.quoteNo);
+      lines.push('Tanggal: ' + d.tanggal + ' · Berlaku s/d: ' + d.berlaku);
+      lines.push('Kepada: ' + d.custName + (d.custKontak ? (' (' + d.custKontak + ')') : ''));
+      lines.push('');
+      lines.push('*Rincian Barang:*');
+      (d.items || []).forEach(function(it){
+        lines.push('- ' + it.nama + ' x' + it.qty + ' = ' + formatRp(it.subtotal));
+      });
+      lines.push('');
+      lines.push('Subtotal Barang: ' + formatRp(d.totalBarang));
+      lines.push('Ongkir Pengiriman: ' + formatRp(d.ongkirCustomer));
+      if (d.domestik > 0) lines.push('Ongkir Domestik: ' + formatRp(d.domestik));
+      lines.push('*Grand Total: ' + formatRp(d.grand) + '*');
+      if (d.noteText) { lines.push(''); lines.push(d.noteText); }
+      lines.push('');
+      lines.push('Terima kasih sudah mempercayakan pengiriman & sourcing Anda ke D.Link Cargo 🙏');
+    } else {
+      lines.push('*QUOTATION ONGKIR D.LINK CARGO*');
+      lines.push(d.quoteNo);
+      lines.push('Tanggal: ' + d.tanggal + ' · Berlaku s/d: ' + d.berlaku);
+      lines.push('Kepada: ' + d.custName + (d.custKontak ? (' (' + d.custKontak + ')') : ''));
+      lines.push('');
+      lines.push('*Rincian Ongkir:*');
+      (d.items || []).forEach(function(it){
+        lines.push('- ' + it.nama + ' (' + (it.moda === 'udara' ? 'Udara' : 'Laut') + ') | ' + it.qty + ' ' + it.unit + ' x ' + formatRp(it.tarif) + ' = ' + formatRp(it.ongkir) + (it.branded ? ' (Branded)' : ''));
+      });
+      lines.push('');
+      lines.push('Ongkir Dasar: ' + formatRp(d.totalDasar));
+      if (d.totalBrand > 0) lines.push('Branded Fee: ' + formatRp(d.totalBrand));
+      lines.push('*Total Ongkir: ' + formatRp(d.grand) + '*');
+      if (d.noteText) { lines.push(''); lines.push(d.noteText); }
+      lines.push('');
+      lines.push('Terima kasih sudah mempercayakan pengiriman Anda ke D.Link Cargo 🙏');
+    }
+    return lines.join('\n');
+  }
+
+  function buildInvoiceWaText(inv){
+    var lines = [];
+    var payLabel = { belum:'Belum Bayar', dp:'DP', lunas:'LUNAS' }[inv.paymentStatus || 'belum'];
+    lines.push('*INVOICE D.LINK CARGO*');
+    lines.push(inv.invNo);
+    lines.push('Tanggal: ' + inv.tanggal + ' · Ref Quotation: ' + inv.quoteNo);
+    lines.push('Kepada: ' + inv.custName + (inv.custKontak ? (' (' + inv.custKontak + ')') : ''));
+    lines.push('');
+    if (inv.calcType === 'barang') {
+      lines.push('*Rincian Barang:*');
+      (inv.items || []).forEach(function(it){
+        lines.push('- ' + it.nama + ' x' + it.qty + ' = ' + formatRp(it.subtotal));
+      });
+      lines.push('');
+      lines.push('Subtotal Barang: ' + formatRp(inv.totalBarang));
+      lines.push('Ongkir Pengiriman: ' + formatRp(inv.ongkirCustomer));
+      if (inv.domestik > 0) lines.push('Ongkir Domestik: ' + formatRp(inv.domestik));
+    } else {
+      lines.push('*Rincian Ongkir:*');
+      (inv.items || []).forEach(function(it){
+        lines.push('- ' + it.nama + ' (' + (it.moda === 'udara' ? 'Udara' : 'Laut') + ') | ' + it.qty + ' ' + it.unit + ' x ' + formatRp(it.tarif) + ' = ' + formatRp(it.ongkir) + (it.branded ? ' (Branded)' : ''));
+      });
+      lines.push('');
+      lines.push('Ongkir Dasar: ' + formatRp(inv.totalDasar));
+      if (inv.totalBrand > 0) lines.push('Branded Fee: ' + formatRp(inv.totalBrand));
+    }
+    lines.push('*Total Tagihan: ' + formatRp(inv.grand) + '*');
+    lines.push('Status Pembayaran: *' + payLabel + '*');
+    if (inv.noteText) { lines.push(''); lines.push(inv.noteText); }
+    lines.push('');
+    lines.push('Mohon pembayaran diselesaikan sesuai kesepakatan. Terima kasih 🙏');
+    return lines.join('\n');
+  }
+
+  function downloadQuotationPdfFromData(d){
+    if (!window.jspdf || !window.jspdf.jsPDF) { showToast('PDF engine gagal dimuat'); return; }
+    var doc = new window.jspdf.jsPDF({unit:'pt', format:'a4'});
+    var pageWidth = doc.internal.pageSize.getWidth();
+    var marginX = 42, y = 50;
+    var navy = [11,46,89], slate = [91,103,115];
+    var isBarang = d.calcType === 'barang';
+
+    doc.setTextColor(navy[0],navy[1],navy[2]); doc.setFont('helvetica','bold'); doc.setFontSize(18);
+    doc.text('D.Link Cargo', marginX, y);
+    doc.setFontSize(11); doc.setTextColor(slate[0],slate[1],slate[2]); doc.setFont('helvetica','normal');
+    doc.text(isBarang ? 'QUOTATION' : 'QUOTATION ONGKIR', marginX, y + 16);
+
+    doc.setFontSize(9.5);
+    doc.text(d.quoteNo, pageWidth - marginX, y - 4, {align:'right'});
+    doc.text('Tanggal: ' + d.tanggal, pageWidth - marginX, y + 10, {align:'right'});
+    doc.text('Berlaku s/d: ' + d.berlaku, pageWidth - marginX, y + 24, {align:'right'});
+
+    y += 40; doc.setDrawColor(navy[0],navy[1],navy[2]); doc.setLineWidth(1.2);
+    doc.line(marginX, y, pageWidth - marginX, y); y += 20;
+
+    doc.setTextColor(navy[0],navy[1],navy[2]); doc.setFontSize(10.5); doc.setFont('helvetica','bold');
+    doc.text('Kepada:', marginX, y); doc.setFont('helvetica','normal');
+    doc.text(d.custName + (d.custKontak ? ('  (' + d.custKontak + ')') : ''), marginX + 50, y);
+    y += 22;
+
+    var col1 = marginX, col4 = pageWidth - marginX, col2, col3;
+    doc.setFontSize(9); doc.setTextColor(slate[0],slate[1],slate[2]);
+    if (isBarang) {
+      col2 = marginX + 260; col3 = marginX + 340;
+      doc.text('BARANG', col1, y); doc.text('QTY', col2, y, {align:'right'}); doc.text('HARGA', col3, y, {align:'right'}); doc.text('SUBTOTAL', col4, y, {align:'right'});
+    } else {
+      col2 = marginX + 240; col3 = marginX + 360;
+      doc.text('BARANG', col1, y); doc.text('QTY', col2, y, {align:'right'}); doc.text('TARIF', col3, y, {align:'right'}); doc.text('ONGKIR', col4, y, {align:'right'});
+    }
+    y += 6; doc.setDrawColor(228,236,245); doc.setLineWidth(0.7); doc.line(marginX, y, pageWidth - marginX, y); y += 14;
+
+    doc.setFontSize(10); doc.setTextColor(navy[0],navy[1],navy[2]);
+    (d.items || []).forEach(function(it){
+      if (y > 720) { doc.addPage(); y = 50; }
+      var label, qtyText, hargaText, totalText;
+      if (isBarang) {
+        label = it.nama; qtyText = String(it.qty);
+        hargaText = 'Rp' + Math.round(it.jual).toLocaleString('id-ID');
+        totalText = 'Rp' + Math.round(it.subtotal).toLocaleString('id-ID');
+      } else {
+        label = it.nama + ' (' + (it.moda === 'udara' ? 'Udara' : 'Laut') + ')' + (it.branded ? ' (Branded)' : '');
+        qtyText = it.qty + ' ' + it.unit;
+        hargaText = 'Rp' + Math.round(it.tarif).toLocaleString('id-ID');
+        totalText = 'Rp' + Math.round(it.ongkir).toLocaleString('id-ID');
+      }
+      var namaLines = doc.splitTextToSize(label, isBarang ? 230 : 210);
+      doc.text(namaLines, col1, y);
+      doc.text(qtyText, col2, y, {align:'right'});
+      doc.text(hargaText, col3, y, {align:'right'});
+      doc.text(totalText, col4, y, {align:'right'});
+      y += Math.max(16, namaLines.length * 13);
+      doc.setDrawColor(240,244,248); doc.line(marginX, y - 6, pageWidth - marginX, y - 6);
+    });
+
+    y += 8;
+    function totalRow(label, value, bold){
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      doc.setFontSize(bold ? 12 : 10);
+      if (bold) doc.setTextColor(navy[0],navy[1],navy[2]); else doc.setTextColor(slate[0],slate[1],slate[2]);
+      doc.text(label, col3 - 60, y);
+      doc.setTextColor(navy[0],navy[1],navy[2]);
+      doc.text('Rp' + Math.round(value).toLocaleString('id-ID'), col4, y, {align:'right'});
+      y += bold ? 20 : 16;
+    }
+    if (isBarang) {
+      totalRow('Subtotal Barang', d.totalBarang, false);
+      totalRow('Ongkir Pengiriman', d.ongkirCustomer, false);
+      if (d.domestik > 0) totalRow('Ongkir Domestik', d.domestik, false);
+    } else {
+      totalRow('Ongkir Dasar', d.totalDasar, false);
+      if (d.totalBrand > 0) totalRow('Branded Fee', d.totalBrand, false);
+    }
+    doc.setDrawColor(navy[0],navy[1],navy[2]); doc.setLineWidth(1);
+    doc.line(col3 - 60, y - 12, pageWidth - marginX, y - 12);
+    totalRow(isBarang ? 'Grand Total' : 'Total Ongkir', d.grand, true);
+
+    if (d.noteText) {
+      y += 14; doc.setFillColor(234,242,251);
+      var noteLines = doc.splitTextToSize(d.noteText, pageWidth - marginX*2 - 20);
+      var noteHeight = noteLines.length * 12 + 16;
+      if (y + noteHeight > 780) { doc.addPage(); y = 50; }
+      doc.roundedRect(marginX, y, pageWidth - marginX*2, noteHeight, 6, 6, 'F');
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(slate[0],slate[1],slate[2]);
+      doc.text(noteLines, marginX + 10, y + 16);
+    }
+    doc.save(d.quoteNo + '.pdf');
+    showToast('PDF quotation terunduh!');
+  }
+
+  function saveQuotationToHistory(calcType, data){
+    fbReady.then(function(){
+      var payload = Object.assign({}, data, {
+        calcType: calcType,
+        status: 'draft',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      return db.collection('quotations').add(payload);
+    }).then(function(){
+      showToast('Quotation tersimpan ke riwayat');
+    }).catch(function(err){
+      console.error('Gagal simpan riwayat:', err);
+      showToast('Gagal simpan ke riwayat (cek koneksi)');
+    });
+  }
+
+  function histItemsHtml(calcType, items){
+    if (!items || !items.length) return '<div>Tidak ada item.</div>';
+    return items.map(function(it){
+      if (calcType === 'barang') {
+        return '<div>' + escapeHtml(it.nama) + ' x' + it.qty + ' = ' + formatRp(it.subtotal) + '</div>';
+      }
+      return '<div>' + escapeHtml(it.nama) + ' (' + (it.moda === 'udara' ? 'Udara' : 'Laut') + ') ' + it.qty + ' ' + it.unit + ' = ' + formatRp(it.ongkir) + (it.branded ? ' (Branded)' : '') + '</div>';
+    }).join('');
+  }
+
+  function renderQuotationHistory(snapshot){
+    if (snapshot.empty) {
+      histQuotationList.innerHTML = '<p class="hist-empty">Belum ada quotation tersimpan.</p>';
+      return;
+    }
+    var html = '';
+    snapshot.forEach(function(docSnap){
+      var d = docSnap.data();
+      var status = d.status || 'draft';
+      var canConvert = status === 'deal' && !d.invoiceNo;
+      html += '<div class="hist-card" data-id="' + docSnap.id + '">';
+      html += '<div class="hist-card-head"><div><div class="hist-no">' + escapeHtml(d.quoteNo || '-') + ' <span style="font-weight:400;color:var(--slate);">(' + (d.calcType === 'barang' ? 'Barang' : 'Ongkir') + ')</span></div><div class="hist-date">' + escapeHtml(d.tanggal || '') + '</div></div><span class="hist-badge hist-badge-' + status + '">' + STATUS_LABEL[status] + '</span></div>';
+      html += '<div class="hist-cust">' + escapeHtml(d.custName || '-') + (d.custKontak ? (' &middot; ' + escapeHtml(d.custKontak)) : '') + '</div>';
+      html += '<div class="hist-grand">' + formatRp(d.grand) + '</div>';
+      html += '<details><summary style="font-size:11px;color:var(--ocean);cursor:pointer;">Lihat rincian</summary><div style="font-size:11px;color:var(--slate);margin-top:6px;">' + histItemsHtml(d.calcType, d.items) + '</div></details>';
+      if (d.invoiceNo) html += '<div class="hist-ref">✅ Sudah jadi invoice: ' + escapeHtml(d.invoiceNo) + '</div>';
+      html += '<div class="hist-row"><select class="hist-status-select">';
+      ['draft','terkirim','deal','batal'].forEach(function(s){
+        html += '<option value="' + s + '"' + (s === status ? ' selected' : '') + '>' + STATUS_LABEL[s] + '</option>';
+      });
+      html += '</select>';
+      html += '<button type="button" class="btn btn-navy2 hist-quote-pdf-btn">📄 PDF</button>';
+      html += '<button type="button" class="btn btn-orange hist-quote-wa-btn">📲 Kirim WA</button>';
+      if (canConvert) html += '<button type="button" class="btn btn-outline hist-convert-btn">🧾 Convert Invoice</button>';
+      html += '<button type="button" class="btn btn-outline hist-delete-btn">🗑️ Hapus</button>';
+      html += '</div></div>';
+    });
+    histQuotationList.innerHTML = html;
+  }
+
+  function renderInvoiceHistory(snapshot){
+    if (snapshot.empty) {
+      histInvoiceList.innerHTML = '<p class="hist-empty">Belum ada invoice.</p>';
+      return;
+    }
+    var html = '';
+    snapshot.forEach(function(docSnap){
+      var d = docSnap.data();
+      var pay = d.paymentStatus || 'belum';
+      html += '<div class="hist-card" data-id="' + docSnap.id + '">';
+      html += '<div class="hist-card-head"><div><div class="hist-no">' + escapeHtml(d.invNo || '-') + '</div><div class="hist-date">' + escapeHtml(d.tanggal || '') + '</div></div><span class="hist-badge hist-badge-' + pay + '">' + PAYMENT_LABEL[pay] + '</span></div>';
+      html += '<div class="hist-ref">Ref Quotation: ' + escapeHtml(d.quoteNo || '-') + '</div>';
+      html += '<div class="hist-cust">' + escapeHtml(d.custName || '-') + (d.custKontak ? (' &middot; ' + escapeHtml(d.custKontak)) : '') + '</div>';
+      html += '<div class="hist-grand">' + formatRp(d.grand) + '</div>';
+      html += '<details><summary style="font-size:11px;color:var(--ocean);cursor:pointer;">Lihat rincian</summary><div style="font-size:11px;color:var(--slate);margin-top:6px;">' + histItemsHtml(d.calcType, d.items) + '</div></details>';
+      html += '<div class="hist-row"><select class="hist-payment-select">';
+      ['belum','dp','lunas'].forEach(function(s){
+        html += '<option value="' + s + '"' + (s === pay ? ' selected' : '') + '>' + PAYMENT_LABEL[s] + '</option>';
+      });
+      html += '</select>';
+      html += '<button type="button" class="btn btn-navy2 hist-invoice-pdf-btn">📄 PDF</button>';
+      html += '<button type="button" class="btn btn-orange hist-invoice-wa-btn">📲 Kirim WA</button>';
+      html += '<button type="button" class="btn btn-outline hist-delete-invoice-btn">🗑️ Hapus</button>';
+      html += '</div></div>';
+    });
+    histInvoiceList.innerHTML = html;
+  }
+
+  function convertQuotationToInvoice(id, d){
+    if (d.invoiceNo) return;
+    var invNo = genInvoiceNo();
+    var invoiceData = {
+      invNo: invNo, quoteNo: d.quoteNo, calcType: d.calcType,
+      tanggal: fmtDate(new Date()), custName: d.custName, custKontak: d.custKontak,
+      items: d.items, noteText: d.noteText, paymentStatus: 'belum', grand: d.grand,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (d.calcType === 'barang') {
+      invoiceData.totalBarang = d.totalBarang; invoiceData.ongkirCustomer = d.ongkirCustomer; invoiceData.domestik = d.domestik || 0;
+    } else {
+      invoiceData.totalDasar = d.totalDasar; invoiceData.totalBrand = d.totalBrand || 0;
+    }
+    db.collection('invoices').add(invoiceData).then(function(){
+      return db.collection('quotations').doc(id).update({invoiceNo: invNo});
+    }).then(function(){
+      showToast('Invoice ' + invNo + ' dibuat!');
+    }).catch(function(err){
+      console.error('Gagal buat invoice:', err);
+      showToast('Gagal buat invoice');
+    });
+  }
+
+  function downloadInvoicePdf(inv){
+    if (!window.jspdf || !window.jspdf.jsPDF) { showToast('PDF engine gagal dimuat'); return; }
+    var doc = new window.jspdf.jsPDF({unit:'pt', format:'a4'});
+    var pageWidth = doc.internal.pageSize.getWidth();
+    var marginX = 42, y = 50;
+    var navy = [11,46,89], slate = [91,103,115], green = [30,142,79];
+    var isBarang = inv.calcType === 'barang';
+
+    doc.setTextColor(navy[0],navy[1],navy[2]); doc.setFont('helvetica','bold'); doc.setFontSize(18);
+    doc.text('D.Link Cargo', marginX, y);
+    doc.setFontSize(11); doc.setTextColor(slate[0],slate[1],slate[2]); doc.setFont('helvetica','normal');
+    doc.text('INVOICE', marginX, y + 16);
+
+    doc.setFontSize(9.5);
+    doc.text(inv.invNo, pageWidth - marginX, y - 4, {align:'right'});
+    doc.text('Tanggal: ' + inv.tanggal, pageWidth - marginX, y + 10, {align:'right'});
+    doc.text('Ref Quotation: ' + inv.quoteNo, pageWidth - marginX, y + 24, {align:'right'});
+
+    y += 40;
+    doc.setDrawColor(navy[0],navy[1],navy[2]); doc.setLineWidth(1.2);
+    doc.line(marginX, y, pageWidth - marginX, y);
+    y += 20;
+
+    doc.setTextColor(navy[0],navy[1],navy[2]); doc.setFontSize(10.5); doc.setFont('helvetica','bold');
+    doc.text('Kepada:', marginX, y); doc.setFont('helvetica','normal');
+    doc.text(inv.custName + (inv.custKontak ? ('  (' + inv.custKontak + ')') : ''), marginX + 50, y);
+    y += 22;
+
+    var col1 = marginX, col4 = pageWidth - marginX, col2, col3;
+    doc.setFontSize(9); doc.setTextColor(slate[0],slate[1],slate[2]);
+    if (isBarang) {
+      col2 = marginX + 260; col3 = marginX + 340;
+      doc.text('BARANG', col1, y); doc.text('QTY', col2, y, {align:'right'}); doc.text('HARGA', col3, y, {align:'right'}); doc.text('SUBTOTAL', col4, y, {align:'right'});
+    } else {
+      col2 = marginX + 240; col3 = marginX + 360;
+      doc.text('BARANG', col1, y); doc.text('QTY', col2, y, {align:'right'}); doc.text('TARIF', col3, y, {align:'right'}); doc.text('ONGKIR', col4, y, {align:'right'});
+    }
+    y += 6; doc.setDrawColor(228,236,245); doc.setLineWidth(0.7); doc.line(marginX, y, pageWidth - marginX, y); y += 14;
+
+    doc.setFontSize(10); doc.setTextColor(navy[0],navy[1],navy[2]);
+    (inv.items || []).forEach(function(it){
+      if (y > 720) { doc.addPage(); y = 50; }
+      var label, qtyText, hargaText, totalText;
+      if (isBarang) {
+        label = it.nama; qtyText = String(it.qty);
+        hargaText = 'Rp' + Math.round(it.jual).toLocaleString('id-ID');
+        totalText = 'Rp' + Math.round(it.subtotal).toLocaleString('id-ID');
+      } else {
+        label = it.nama + ' (' + (it.moda === 'udara' ? 'Udara' : 'Laut') + ')' + (it.branded ? ' (Branded)' : '');
+        qtyText = it.qty + ' ' + it.unit;
+        hargaText = 'Rp' + Math.round(it.tarif).toLocaleString('id-ID');
+        totalText = 'Rp' + Math.round(it.ongkir).toLocaleString('id-ID');
+      }
+      var namaLines = doc.splitTextToSize(label, isBarang ? 230 : 210);
+      doc.text(namaLines, col1, y);
+      doc.text(qtyText, col2, y, {align:'right'});
+      doc.text(hargaText, col3, y, {align:'right'});
+      doc.text(totalText, col4, y, {align:'right'});
+      y += Math.max(16, namaLines.length * 13);
+      doc.setDrawColor(240,244,248); doc.line(marginX, y - 6, pageWidth - marginX, y - 6);
+    });
+
+    y += 8;
+    function totalRow(label, value, bold){
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      doc.setFontSize(bold ? 12 : 10);
+      if (bold) doc.setTextColor(navy[0],navy[1],navy[2]); else doc.setTextColor(slate[0],slate[1],slate[2]);
+      doc.text(label, col3 - 60, y);
+      doc.setTextColor(navy[0],navy[1],navy[2]);
+      doc.text('Rp' + Math.round(value).toLocaleString('id-ID'), col4, y, {align:'right'});
+      y += bold ? 20 : 16;
+    }
+    if (isBarang) {
+      totalRow('Subtotal Barang', inv.totalBarang, false);
+      totalRow('Ongkir Pengiriman', inv.ongkirCustomer, false);
+      if (inv.domestik > 0) totalRow('Ongkir Domestik', inv.domestik, false);
+    } else {
+      totalRow('Ongkir Dasar', inv.totalDasar, false);
+      if (inv.totalBrand > 0) totalRow('Branded Fee', inv.totalBrand, false);
+    }
+    doc.setDrawColor(navy[0],navy[1],navy[2]); doc.setLineWidth(1);
+    doc.line(col3 - 60, y - 12, pageWidth - marginX, y - 12);
+    totalRow('Total Tagihan', inv.grand, true);
+
+    y += 16;
+    var pay = inv.paymentStatus || 'belum';
+    var stampLabel = pay === 'lunas' ? 'LUNAS' : (pay === 'dp' ? 'DP DITERIMA' : 'BELUM LUNAS');
+    var stampColor = pay === 'lunas' ? green : (pay === 'dp' ? [232,94,42] : [192,57,43]);
+    doc.setDrawColor(stampColor[0],stampColor[1],stampColor[2]);
+    doc.setTextColor(stampColor[0],stampColor[1],stampColor[2]);
+    doc.setLineWidth(1.5); doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    var stampW = doc.getTextWidth(stampLabel) + 24;
+    doc.roundedRect(pageWidth - marginX - stampW, y, stampW, 24, 5, 5);
+    doc.text(stampLabel, pageWidth - marginX - stampW/2, y + 16, {align:'center'});
+    y += 40;
+
+    if (inv.noteText) {
+      doc.setFillColor(234,242,251);
+      var noteLines = doc.splitTextToSize(inv.noteText, pageWidth - marginX*2 - 20);
+      var noteHeight = noteLines.length * 12 + 16;
+      if (y + noteHeight > 780) { doc.addPage(); y = 50; }
+      doc.roundedRect(marginX, y, pageWidth - marginX*2, noteHeight, 6, 6, 'F');
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(slate[0],slate[1],slate[2]);
+      doc.text(noteLines, marginX + 10, y + 16);
+    }
+
+    doc.save(inv.invNo + '.pdf');
+    showToast('PDF invoice terunduh!');
+  }
+
+  histQuotationList.addEventListener('click', function(e){
+    var card = e.target.closest('.hist-card');
+    if (!card) return;
+    var id = card.getAttribute('data-id');
+    if (e.target.classList.contains('hist-delete-btn')) {
+      if (!confirm('Hapus quotation ini? Tindakan tidak bisa dibatalkan.')) return;
+      db.collection('quotations').doc(id).delete().then(function(){
+        showToast('Quotation dihapus');
+      }).catch(function(err){ console.error(err); showToast('Gagal hapus'); });
+    } else if (e.target.classList.contains('hist-convert-btn')) {
+      db.collection('quotations').doc(id).get().then(function(docSnap){
+        convertQuotationToInvoice(id, docSnap.data());
+      });
+    } else if (e.target.classList.contains('hist-quote-pdf-btn')) {
+      db.collection('quotations').doc(id).get().then(function(docSnap){
+        downloadQuotationPdfFromData(docSnap.data());
+      });
+    } else if (e.target.classList.contains('hist-quote-wa-btn')) {
+      db.collection('quotations').doc(id).get().then(function(docSnap){
+        var d = docSnap.data();
+        if (!d.custKontak) { showToast('Nomor customer kosong'); return; }
+        openWaSend(d.custKontak, buildQuotationWaText(d));
+        if ((d.status || 'draft') === 'draft') {
+          db.collection('quotations').doc(id).update({status: 'terkirim'}).catch(function(){});
+        }
+      });
+    }
+  });
+  histQuotationList.addEventListener('change', function(e){
+    if (!e.target.classList.contains('hist-status-select')) return;
+    var card = e.target.closest('.hist-card');
+    var id = card.getAttribute('data-id');
+    var newStatus = e.target.value;
+    db.collection('quotations').doc(id).update({status: newStatus}).then(function(){
+      if (newStatus === 'deal') {
+        return db.collection('quotations').doc(id).get().then(function(docSnap){
+          var d = docSnap.data();
+          if (!d.invoiceNo) convertQuotationToInvoice(id, d);
+        });
+      }
+    }).catch(function(err){
+      console.error(err); showToast('Gagal update status');
+    });
+  });
+
+  histInvoiceList.addEventListener('click', function(e){
+    var card = e.target.closest('.hist-card');
+    if (!card) return;
+    var id = card.getAttribute('data-id');
+    if (e.target.classList.contains('hist-delete-invoice-btn')) {
+      if (!confirm('Hapus invoice ini?')) return;
+      db.collection('invoices').doc(id).delete().then(function(){
+        showToast('Invoice dihapus');
+      }).catch(function(err){ console.error(err); showToast('Gagal hapus'); });
+    } else if (e.target.classList.contains('hist-invoice-pdf-btn')) {
+      db.collection('invoices').doc(id).get().then(function(docSnap){
+        downloadInvoicePdf(docSnap.data());
+      });
+    } else if (e.target.classList.contains('hist-invoice-wa-btn')) {
+      db.collection('invoices').doc(id).get().then(function(docSnap){
+        var inv = docSnap.data();
+        if (!inv.custKontak) { showToast('Nomor customer kosong'); return; }
+        openWaSend(inv.custKontak, buildInvoiceWaText(inv));
+      });
+    }
+  });
+  histInvoiceList.addEventListener('change', function(e){
+    if (!e.target.classList.contains('hist-payment-select')) return;
+    var card = e.target.closest('.hist-card');
+    var id = card.getAttribute('data-id');
+    db.collection('invoices').doc(id).update({paymentStatus: e.target.value}).catch(function(err){ console.error(err); });
+  });
+
+  fbReady.then(function(){
+    db.collection('quotations').orderBy('createdAt','desc').onSnapshot(renderQuotationHistory, function(err){
+      console.error('Listen quotations error:', err);
+      histQuotationList.innerHTML = '<p class="hist-empty">Gagal memuat riwayat (cek koneksi/izin Firestore).</p>';
+    });
+    db.collection('invoices').orderBy('createdAt','desc').onSnapshot(renderInvoiceHistory, function(err){
+      console.error('Listen invoices error:', err);
+      histInvoiceList.innerHTML = '<p class="hist-empty">Gagal memuat riwayat invoice.</p>';
+    });
+  });
 })();
 </script>
 </body>
