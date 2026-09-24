@@ -2036,24 +2036,59 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     showToast('PDF invoice terunduh!');
   }
 
+  function armDeleteButton(btn, onConfirm){
+    if (btn.dataset.arm === '1') {
+      onConfirm();
+      return;
+    }
+    var originalHtml = btn.innerHTML;
+    var originalBg = btn.style.background;
+    var originalColor = btn.style.color;
+    var originalBorder = btn.style.borderColor;
+    btn.dataset.arm = '1';
+    btn.innerHTML = '⚠️ Klik lagi untuk hapus';
+    btn.style.background = '#C0392B';
+    btn.style.color = '#fff';
+    btn.style.borderColor = '#C0392B';
+    var reset = function(){
+      btn.dataset.arm = '';
+      btn.innerHTML = originalHtml;
+      btn.style.background = originalBg;
+      btn.style.color = originalColor;
+      btn.style.borderColor = originalBorder;
+    };
+    btn._armReset = reset;
+    setTimeout(function(){
+      if (btn.dataset.arm === '1') reset();
+    }, 4000);
+  }
+
   histQuotationList.addEventListener('click', function(e){
     var card = e.target.closest('.hist-card');
     if (!card) return;
     var id = card.getAttribute('data-id');
-    if (e.target.classList.contains('hist-delete-btn')) {
-      if (!confirm('Hapus quotation ini? Tindakan tidak bisa dibatalkan.')) return;
-      db.collection('quotations').doc(id).delete().then(function(){
-        showToast('Quotation dihapus');
-      }).catch(function(err){ console.error(err); showToast('Gagal hapus'); });
-    } else if (e.target.classList.contains('hist-convert-btn')) {
+    var delBtn = e.target.closest('.hist-delete-btn');
+    var convBtn = e.target.closest('.hist-convert-btn');
+    var pdfBtn = e.target.closest('.hist-quote-pdf-btn');
+    var waBtn = e.target.closest('.hist-quote-wa-btn');
+    if (delBtn) {
+      armDeleteButton(delBtn, function(){
+        db.collection('quotations').doc(id).delete().then(function(){
+          showToast('Quotation dihapus');
+        }).catch(function(err){
+          console.error('Delete quotation error:', err);
+          showToast('Gagal hapus: ' + (err && err.code ? err.code : 'error'));
+        });
+      });
+    } else if (convBtn) {
       db.collection('quotations').doc(id).get().then(function(docSnap){
         convertQuotationToInvoice(id, docSnap.data());
       });
-    } else if (e.target.classList.contains('hist-quote-pdf-btn')) {
+    } else if (pdfBtn) {
       db.collection('quotations').doc(id).get().then(function(docSnap){
         downloadQuotationPdfFromData(docSnap.data());
       });
-    } else if (e.target.classList.contains('hist-quote-wa-btn')) {
+    } else if (waBtn) {
       db.collection('quotations').doc(id).get().then(function(docSnap){
         var d = docSnap.data();
         if (!d.custKontak) { showToast('Nomor customer kosong'); return; }
@@ -2085,16 +2120,23 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     var card = e.target.closest('.hist-card');
     if (!card) return;
     var id = card.getAttribute('data-id');
-    if (e.target.classList.contains('hist-delete-invoice-btn')) {
-      if (!confirm('Hapus invoice ini?')) return;
-      db.collection('invoices').doc(id).delete().then(function(){
-        showToast('Invoice dihapus');
-      }).catch(function(err){ console.error(err); showToast('Gagal hapus'); });
-    } else if (e.target.classList.contains('hist-invoice-pdf-btn')) {
+    var delBtn = e.target.closest('.hist-delete-invoice-btn');
+    var pdfBtn = e.target.closest('.hist-invoice-pdf-btn');
+    var waBtn = e.target.closest('.hist-invoice-wa-btn');
+    if (delBtn) {
+      armDeleteButton(delBtn, function(){
+        db.collection('invoices').doc(id).delete().then(function(){
+          showToast('Invoice dihapus');
+        }).catch(function(err){
+          console.error('Delete invoice error:', err);
+          showToast('Gagal hapus: ' + (err && err.code ? err.code : 'error'));
+        });
+      });
+    } else if (pdfBtn) {
       db.collection('invoices').doc(id).get().then(function(docSnap){
         downloadInvoicePdf(docSnap.data());
       });
-    } else if (e.target.classList.contains('hist-invoice-wa-btn')) {
+    } else if (waBtn) {
       db.collection('invoices').doc(id).get().then(function(docSnap){
         var inv = docSnap.data();
         if (!inv.custKontak) { showToast('Nomor customer kosong'); return; }
