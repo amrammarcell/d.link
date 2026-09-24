@@ -148,6 +148,22 @@
   .hist-row select{font-size:11.5px;padding:6px 8px;border:1px solid #D7E2EE;border-radius:7px;background:#fff;color:var(--navy);}
   .hist-row .btn{flex:none;padding:8px 12px;font-size:11px;}
   .hist-ref{font-size:10.5px;color:var(--slate);margin-bottom:4px;}
+
+  .page{display:none;}
+  .page.active{display:block;}
+  .page-title{font-family:'Poppins',sans-serif;font-weight:800;font-size:20px;color:var(--navy);margin:4px 0 6px;}
+  .bottom-nav{
+    flex:none;display:flex;background:#fff;border-top:1px solid #E4ECF5;
+    padding-bottom:env(safe-area-inset-bottom,0);
+  }
+  .bottom-nav-btn{
+    flex:1;background:none;border:none;padding:10px 4px;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;color:var(--slate);
+    border-top:3px solid transparent;
+  }
+  .bottom-nav-btn .bn-icon{font-size:18px;line-height:1;}
+  .bottom-nav-btn.active{color:var(--navy);border-top-color:var(--orange);background:var(--sky);}
 </style>
 </head>
 <body>
@@ -170,6 +186,7 @@
 
   <main class="app-content" id="app-content">
 
+    <section class="page active" id="page-kalkulator">
     <p class="intro">Hitung harga jual barang + margin, ongkir 🚢 Laut (per CBM) atau ✈️ Udara (per KG) — harga bisa kamu isi/edit sendiri — sampai jadi <strong>quotation siap kirim</strong> ke customer — teks WA atau PDF.</p>
 
     <div class="calc-card">
@@ -311,23 +328,25 @@
       </div>
     </div>
 
-    <!-- ═══ RIWAYAT QUOTATION & INVOICE ═══ -->
-    <div class="section-divider">🗂️ Riwayat &amp; Invoice</div>
-    <p class="intro">Quotation yang di-generate otomatis tersimpan di sini (tersinkron ke semua device tim). Ubah status, hapus yang batal, atau convert ke invoice kalau sudah deal.</p>
-
-    <div class="hist-tabs">
-      <button type="button" class="hist-tab active" data-histtab="quotation">📋 Quotation</button>
-      <button type="button" class="hist-tab" data-histtab="invoice">🧾 Invoice</button>
-    </div>
-
-    <div id="hist-quotation-panel">
-      <div id="hist-quotation-list"><p class="hist-empty">Memuat riwayat…</p></div>
-    </div>
-    <div id="hist-invoice-panel" hidden>
-      <div id="hist-invoice-list"><p class="hist-empty">Memuat riwayat…</p></div>
-    </div>
-
     <div class="footer-note">🔒 Untuk akses internal tim D.Link — jangan dibagikan ke publik.</div>
+    </section>
+    <!-- END page-kalkulator -->
+
+    <!-- ═══ HALAMAN QUOTATION LIST ═══ -->
+    <section class="page" id="page-quotation">
+      <h2 class="page-title">📋 Quotation List</h2>
+      <p class="intro">Semua quotation yang sudah di-generate. Tersinkron real-time antar device tim. Ubah status, download PDF, kirim ke WA customer, atau hapus.</p>
+      <div id="hist-quotation-list"><p class="hist-empty">Memuat riwayat…</p></div>
+      <div class="footer-note">🔒 Untuk akses internal tim D.Link — jangan dibagikan ke publik.</div>
+    </section>
+
+    <!-- ═══ HALAMAN INVOICE LIST ═══ -->
+    <section class="page" id="page-invoice">
+      <h2 class="page-title">🧾 Invoice List</h2>
+      <p class="intro">Invoice otomatis dibuat saat quotation di-set <strong>Deal</strong>. Ubah status pembayaran, download PDF (dengan stempel status), kirim tagihan ke WA customer, atau hapus.</p>
+      <div id="hist-invoice-list"><p class="hist-empty">Memuat riwayat…</p></div>
+      <div class="footer-note">🔒 Untuk akses internal tim D.Link — jangan dibagikan ke publik.</div>
+    </section>
 
     <template id="item-template">
       <div class="item-row">
@@ -443,6 +462,18 @@
     </template>
 
   </main>
+
+  <nav class="bottom-nav" role="tablist" aria-label="Navigasi utama">
+    <button type="button" class="bottom-nav-btn active" data-page="kalkulator" role="tab" aria-selected="true">
+      <span class="bn-icon">🧮</span><span>Kalkulator</span>
+    </button>
+    <button type="button" class="bottom-nav-btn" data-page="quotation" role="tab" aria-selected="false">
+      <span class="bn-icon">📋</span><span>Quotation</span>
+    </button>
+    <button type="button" class="bottom-nav-btn" data-page="invoice" role="tab" aria-selected="false">
+      <span class="bn-icon">🧾</span><span>Invoice</span>
+    </button>
+  </nav>
 </div>
 
 <script>
@@ -1570,22 +1601,28 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
 
   addShipItem();
 
+  // ═══ NAVIGASI ANTAR HALAMAN ═══
+  var pages = document.querySelectorAll('.page');
+  var navBtns = document.querySelectorAll('.bottom-nav-btn');
+  var appContent = document.getElementById('app-content');
+  navBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var target = btn.getAttribute('data-page');
+      navBtns.forEach(function(b){
+        var isActive = b === btn;
+        b.classList.toggle('active', isActive);
+        b.setAttribute('aria-selected', isActive ? 'true' : 'false');
+      });
+      pages.forEach(function(p){
+        p.classList.toggle('active', p.id === 'page-' + target);
+      });
+      if (appContent) appContent.scrollTop = 0;
+    });
+  });
+
   // ═══ RIWAYAT QUOTATION & INVOICE (Firebase) ═══
   var histQuotationList = document.getElementById('hist-quotation-list');
   var histInvoiceList = document.getElementById('hist-invoice-list');
-  var histQuotationPanel = document.getElementById('hist-quotation-panel');
-  var histInvoicePanel = document.getElementById('hist-invoice-panel');
-  var histTabs = document.querySelectorAll('.hist-tab');
-
-  histTabs.forEach(function(tab){
-    tab.addEventListener('click', function(){
-      histTabs.forEach(function(t){ t.classList.remove('active'); });
-      tab.classList.add('active');
-      var which = tab.getAttribute('data-histtab');
-      histQuotationPanel.hidden = which !== 'quotation';
-      histInvoicePanel.hidden = which !== 'invoice';
-    });
-  });
 
   var STATUS_LABEL = {draft:'Draft', terkirim:'Terkirim', deal:'Deal', batal:'Batal'};
   var PAYMENT_LABEL = {belum:'Belum Bayar', dp:'DP', lunas:'Lunas'};
@@ -1790,7 +1827,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       });
       return db.collection('quotations').add(payload);
     }).then(function(){
-      showToast('Quotation tersimpan ke riwayat');
+      showToast('Tersimpan ke Quotation List');
     }).catch(function(err){
       console.error('Gagal simpan riwayat:', err);
       showToast('Gagal simpan ke riwayat (cek koneksi)');
