@@ -79,6 +79,8 @@
   .f-tarif-hint{font-size:9.5px;color:var(--orange);font-weight:600;margin-top:2px;}
   .f-branded-label{grid-column:1/-1;display:flex !important;flex-direction:row !important;align-items:center;gap:6px;font-size:11.5px;color:var(--slate) !important;}
   .f-branded-label input{width:auto !important;}
+  .f-moda-label{grid-column:1/-1;}
+  .f-moda-label select{border-color:#B9D4EC;}
   .item-warning{background:#FDECEA;border:1px solid #F3B8AF;color:#B23A2E;font-size:11px;border-radius:8px;padding:7px 10px;margin-top:8px;}
   .item-result{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed #DCE6F0;font-size:11px;color:var(--slate);}
   .item-result strong{color:var(--navy);}
@@ -145,7 +147,7 @@
 
   <main class="app-content" id="app-content">
 
-    <p class="intro">Hitung harga jual barang + margin, ongkir per CBM (harga bisa kamu isi/edit sendiri), sampai jadi <strong>quotation siap kirim</strong> ke customer — teks WA atau PDF.</p>
+    <p class="intro">Hitung harga jual barang + margin, ongkir 🚢 Laut (per CBM) atau ✈️ Udara (per KG) — harga bisa kamu isi/edit sendiri — sampai jadi <strong>quotation siap kirim</strong> ke customer — teks WA atau PDF.</p>
 
     <div class="calc-card">
       <h3>Data Customer &amp; Quotation</h3>
@@ -274,7 +276,7 @@
       <div class="quote-to">Kepada: <strong id="ship-qp-customer">-</strong> <span id="ship-qp-kontak"></span></div>
       <div style="overflow-x:auto;">
         <table class="quote-table">
-          <thead><tr><th>Barang</th><th class="num">CBM</th><th class="num">Tarif/CBM</th><th class="num">Ongkir</th></tr></thead>
+          <thead><tr><th>Barang</th><th class="num">Qty</th><th class="num">Tarif</th><th class="num">Ongkir</th></tr></thead>
           <tbody id="ship-qp-items"></tbody>
         </table>
       </div>
@@ -320,11 +322,25 @@
           </label>
           <label>Harga Modal/unit (Rp)<input type="number" class="f-modal" min="0" placeholder="0"></label>
           <label>Qty<input type="number" class="f-qty" min="1" value="1"></label>
-          <label>Total CBM<input type="number" class="f-cbm" min="0" step="0.01" placeholder="0"></label>
-          <label>Harga Ongkir/CBM (Rp)<input type="number" class="f-tarif" min="0" step="1" placeholder="0">
-            <span class="f-tarif-hint">Referensi kategori akan mengisi otomatis, bisa diedit</span>
+          <label class="f-moda-label">Moda Kirim
+            <select class="f-moda">
+              <option value="laut" selected>🚢 Laut (per CBM)</option>
+              <option value="udara">✈️ Udara (per KG)</option>
+            </select>
           </label>
-          <label class="f-branded-label"><input type="checkbox" class="f-branded"> Branded (+Rp300rb/CBM)</label>
+          <div class="f-laut-fields">
+            <label>Total CBM<input type="number" class="f-cbm" min="0" step="0.01" placeholder="0"></label>
+            <label>Harga Ongkir/CBM (Rp)<input type="number" class="f-tarif" min="0" step="1" placeholder="0">
+              <span class="f-tarif-hint">Referensi kategori akan mengisi otomatis, bisa diedit</span>
+            </label>
+            <label class="f-branded-label"><input type="checkbox" class="f-branded"> Branded (+Rp300rb/CBM)</label>
+          </div>
+          <div class="f-udara-fields">
+            <label>Berat (KG)<input type="number" class="f-kg" min="0" step="0.01" placeholder="0"></label>
+            <label>Harga Ongkir/KG (Rp)<input type="number" class="f-tarif-kg" min="0" step="1" placeholder="0">
+              <span class="f-tarif-hint">Isi tarif udara per kg secara manual</span>
+            </label>
+          </div>
         </div>
         <div class="item-warning" hidden>⚠️ Kategori ini sedang masa atensi — belum bisa diproses, item ini tidak dihitung ke total.</div>
         <div class="item-result">
@@ -358,11 +374,25 @@
               <option value="garment" data-tarif="10000000" data-blocked="1">Garment ⚠️ Atensi</option>
             </select>
           </label>
-          <label>Total CBM<input type="number" class="f-cbm" min="0" step="0.01" placeholder="0"></label>
-          <label>Harga Ongkir/CBM (Rp)<input type="number" class="f-tarif" min="0" step="1" placeholder="0">
-            <span class="f-tarif-hint">Referensi kategori akan mengisi otomatis, bisa diedit</span>
+          <label class="f-moda-label">Moda Kirim
+            <select class="f-moda">
+              <option value="laut" selected>🚢 Laut (per CBM)</option>
+              <option value="udara">✈️ Udara (per KG)</option>
+            </select>
           </label>
-          <label class="f-branded-label"><input type="checkbox" class="f-branded"> Branded (+Rp300rb/CBM)</label>
+          <div class="f-laut-fields">
+            <label>Total CBM<input type="number" class="f-cbm" min="0" step="0.01" placeholder="0"></label>
+            <label>Harga Ongkir/CBM (Rp)<input type="number" class="f-tarif" min="0" step="1" placeholder="0">
+              <span class="f-tarif-hint">Referensi kategori akan mengisi otomatis, bisa diedit</span>
+            </label>
+            <label class="f-branded-label"><input type="checkbox" class="f-branded"> Branded (+Rp300rb/CBM)</label>
+          </div>
+          <div class="f-udara-fields">
+            <label>Berat (KG)<input type="number" class="f-kg" min="0" step="0.01" placeholder="0"></label>
+            <label>Harga Ongkir/KG (Rp)<input type="number" class="f-tarif-kg" min="0" step="1" placeholder="0">
+              <span class="f-tarif-hint">Isi tarif udara per kg secara manual</span>
+            </label>
+          </div>
         </div>
         <div class="item-warning" hidden>⚠️ Kategori ini sedang masa atensi — belum bisa diproses, item ini tidak dihitung ke total.</div>
         <div class="item-result">
@@ -816,6 +846,14 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     showToast._t = setTimeout(function(){ toastEl.classList.remove('show'); }, 2200);
   }
 
+  function updateModaFields(row){
+    var moda = row.querySelector('.f-moda').value;
+    var lautEl = row.querySelector('.f-laut-fields');
+    var udaraEl = row.querySelector('.f-udara-fields');
+    lautEl.style.display = moda === 'udara' ? 'none' : 'contents';
+    udaraEl.style.display = moda === 'udara' ? 'contents' : 'none';
+  }
+
   function addItem(){
     var node = itemTemplate.content.cloneNode(true);
     var row = node.querySelector('.item-row');
@@ -829,6 +867,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       row.querySelector('.f-tarif').value = tarif;
       recalc();
     });
+    row.querySelector('.f-moda').addEventListener('change', function(){
+      updateModaFields(row);
+      recalc();
+    });
     row.querySelector('.item-remove').addEventListener('click', function(){
       row.remove();
       recalc();
@@ -838,6 +880,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     var kategoriSel = row.querySelector('.f-kategori');
     var defOpt = kategoriSel.options[kategoriSel.selectedIndex];
     row.querySelector('.f-tarif').value = defOpt.getAttribute('data-tarif') || 0;
+    updateModaFields(row);
     recalc();
   }
 
@@ -852,15 +895,23 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       var margin = Number(row.querySelector('.f-margin').value) || 0;
       var modal = Number(row.querySelector('.f-modal').value) || 0;
       var qty = Number(row.querySelector('.f-qty').value) || 0;
-      var cbm = Number(row.querySelector('.f-cbm').value) || 0;
-      var tarif = Number(row.querySelector('.f-tarif').value) || 0;
-      var branded = row.querySelector('.f-branded').checked;
+      var moda = row.querySelector('.f-moda').value;
 
       var jual = modal * (1 + margin/100);
       var subtotal = jual * qty;
-      var ongkirDasar = tarif * cbm;
-      var brandFee = branded ? 300000 * cbm : 0;
-      var ongkirCost = ongkirDasar + brandFee;
+      var ongkirCost;
+      if (moda === 'udara') {
+        var kg = Number(row.querySelector('.f-kg').value) || 0;
+        var tarifKg = Number(row.querySelector('.f-tarif-kg').value) || 0;
+        ongkirCost = tarifKg * kg;
+      } else {
+        var cbm = Number(row.querySelector('.f-cbm').value) || 0;
+        var tarif = Number(row.querySelector('.f-tarif').value) || 0;
+        var branded = row.querySelector('.f-branded').checked;
+        var ongkirDasar = tarif * cbm;
+        var brandFee = branded ? 300000 * cbm : 0;
+        ongkirCost = ongkirDasar + brandFee;
+      }
 
       var warnEl = row.querySelector('.item-warning');
       warnEl.hidden = !blocked;
@@ -907,13 +958,21 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       var margin = Number(row.querySelector('.f-margin').value) || 0;
       var modal = Number(row.querySelector('.f-modal').value) || 0;
       var qty = Number(row.querySelector('.f-qty').value) || 0;
-      var cbm = Number(row.querySelector('.f-cbm').value) || 0;
-      var tarif = Number(row.querySelector('.f-tarif').value) || 0;
-      var branded = row.querySelector('.f-branded').checked;
+      var moda = row.querySelector('.f-moda').value;
       var nama = row.querySelector('.f-nama').value || 'Barang';
       var jual = modal * (1 + margin/100);
       var subtotal = jual * qty;
-      var ongkirCost = tarif * cbm + (branded ? 300000*cbm : 0);
+      var ongkirCost;
+      if (moda === 'udara') {
+        var kg = Number(row.querySelector('.f-kg').value) || 0;
+        var tarifKg = Number(row.querySelector('.f-tarif-kg').value) || 0;
+        ongkirCost = tarifKg * kg;
+      } else {
+        var cbm = Number(row.querySelector('.f-cbm').value) || 0;
+        var tarif = Number(row.querySelector('.f-tarif').value) || 0;
+        var branded = row.querySelector('.f-branded').checked;
+        ongkirCost = tarif * cbm + (branded ? 300000*cbm : 0);
+      }
       items.push({nama: nama, qty: qty, jual: jual, subtotal: subtotal});
       totalBarang += subtotal;
       totalOngkirCost += ongkirCost;
@@ -1171,6 +1230,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       row.querySelector('.f-tarif').value = tarif;
       recalcShip();
     });
+    row.querySelector('.f-moda').addEventListener('change', function(){
+      updateModaFields(row);
+      recalcShip();
+    });
     row.querySelector('.item-remove').addEventListener('click', function(){
       row.remove();
       recalcShip();
@@ -1179,6 +1242,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     var kategoriSel = row.querySelector('.f-kategori');
     var defOpt = kategoriSel.options[kategoriSel.selectedIndex];
     row.querySelector('.f-tarif').value = defOpt.getAttribute('data-tarif') || 0;
+    updateModaFields(row);
     recalcShip();
   }
 
@@ -1189,12 +1253,21 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       var kategoriSel = row.querySelector('.f-kategori');
       var opt = kategoriSel.options[kategoriSel.selectedIndex];
       var blocked = opt.getAttribute('data-blocked') === '1';
-      var cbm = Number(row.querySelector('.f-cbm').value) || 0;
-      var tarif = Number(row.querySelector('.f-tarif').value) || 0;
-      var branded = row.querySelector('.f-branded').checked;
+      var moda = row.querySelector('.f-moda').value;
 
-      var ongkirDasar = tarif * cbm;
-      var brandFee = branded ? 300000 * cbm : 0;
+      var ongkirDasar, brandFee;
+      if (moda === 'udara') {
+        var kg = Number(row.querySelector('.f-kg').value) || 0;
+        var tarifKg = Number(row.querySelector('.f-tarif-kg').value) || 0;
+        ongkirDasar = tarifKg * kg;
+        brandFee = 0;
+      } else {
+        var cbm = Number(row.querySelector('.f-cbm').value) || 0;
+        var tarif = Number(row.querySelector('.f-tarif').value) || 0;
+        var branded = row.querySelector('.f-branded').checked;
+        ongkirDasar = tarif * cbm;
+        brandFee = branded ? 300000 * cbm : 0;
+      }
       var ongkirTotal = ongkirDasar + brandFee;
 
       var warnEl = row.querySelector('.item-warning');
@@ -1225,14 +1298,25 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       var opt = kategoriSel.options[kategoriSel.selectedIndex];
       var blocked = opt.getAttribute('data-blocked') === '1';
       if (blocked) return;
-      var cbm = Number(row.querySelector('.f-cbm').value) || 0;
-      var tarif = Number(row.querySelector('.f-tarif').value) || 0;
-      var branded = row.querySelector('.f-branded').checked;
+      var moda = row.querySelector('.f-moda').value;
       var nama = row.querySelector('.f-nama').value || 'Barang';
-      var ongkirDasar = tarif * cbm;
-      var brandFee = branded ? 300000 * cbm : 0;
+      var ongkirDasar, brandFee, qty, unit, tarif;
+      if (moda === 'udara') {
+        qty = Number(row.querySelector('.f-kg').value) || 0;
+        tarif = Number(row.querySelector('.f-tarif-kg').value) || 0;
+        unit = 'KG';
+        ongkirDasar = tarif * qty;
+        brandFee = 0;
+      } else {
+        qty = Number(row.querySelector('.f-cbm').value) || 0;
+        tarif = Number(row.querySelector('.f-tarif').value) || 0;
+        unit = 'CBM';
+        var branded = row.querySelector('.f-branded').checked;
+        ongkirDasar = tarif * qty;
+        brandFee = branded ? 300000 * qty : 0;
+      }
       var ongkirTotal = ongkirDasar + brandFee;
-      items.push({nama:nama, cbm:cbm, tarif:tarif, ongkir:ongkirTotal, branded:branded});
+      items.push({nama:nama, moda:moda, qty:qty, unit:unit, tarif:tarif, ongkir:ongkirTotal, branded: moda !== 'udara' && row.querySelector('.f-branded').checked});
       totalDasar += ongkirDasar;
       totalBrand += brandFee;
     });
@@ -1258,7 +1342,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     tbody.innerHTML = '';
     items.forEach(function(it){
       var tr = document.createElement('tr');
-      tr.innerHTML = '<td>' + escapeHtml(it.nama) + (it.branded ? ' <small style="color:var(--orange);">(Branded)</small>' : '') + '</td><td class="num">' + it.cbm + '</td><td class="num">' + formatRp(it.tarif) + '</td><td class="num">' + formatRp(it.ongkir) + '</td>';
+      tr.innerHTML = '<td>' + escapeHtml(it.nama) + ' <small style="color:var(--slate);">(' + (it.moda === 'udara' ? '✈️ Udara' : '🚢 Laut') + ')</small>' + (it.branded ? ' <small style="color:var(--orange);">(Branded)</small>' : '') + '</td><td class="num">' + it.qty + ' ' + it.unit + '</td><td class="num">' + formatRp(it.tarif) + '</td><td class="num">' + formatRp(it.ongkir) + '</td>';
       tbody.appendChild(tr);
     });
 
@@ -1286,7 +1370,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     lines.push('');
     lines.push('*Rincian Ongkir:*');
     items.forEach(function(it){
-      lines.push('- ' + it.nama + ' | ' + it.cbm + ' CBM x ' + formatRp(it.tarif) + ' = ' + formatRp(it.ongkir) + (it.branded ? ' (Branded)' : ''));
+      lines.push('- ' + it.nama + ' (' + (it.moda === 'udara' ? 'Udara' : 'Laut') + ') | ' + it.qty + ' ' + it.unit + ' x ' + formatRp(it.tarif) + ' = ' + formatRp(it.ongkir) + (it.branded ? ' (Branded)' : ''));
     });
     lines.push('');
     lines.push('Ongkir Dasar: ' + formatRp(totalDasar));
@@ -1354,8 +1438,8 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     var col1 = marginX, col2 = marginX + 240, col3 = marginX + 360, col4 = pageWidth - marginX;
     doc.setFontSize(9); doc.setTextColor(slate[0],slate[1],slate[2]);
     doc.text('BARANG', col1, y);
-    doc.text('CBM', col2, y, {align:'right'});
-    doc.text('TARIF/CBM', col3, y, {align:'right'});
+    doc.text('QTY', col2, y, {align:'right'});
+    doc.text('TARIF', col3, y, {align:'right'});
     doc.text('ONGKIR', col4, y, {align:'right'});
     y += 6;
     doc.setDrawColor(228,236,245); doc.setLineWidth(0.7);
@@ -1365,10 +1449,10 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     doc.setFontSize(10); doc.setTextColor(navy[0],navy[1],navy[2]);
     d.items.forEach(function(it){
       if (y > 720) { doc.addPage(); y = 50; }
-      var label = it.nama + (it.branded ? ' (Branded)' : '');
+      var label = it.nama + ' (' + (it.moda === 'udara' ? 'Udara' : 'Laut') + ')' + (it.branded ? ' (Branded)' : '');
       var namaLines = doc.splitTextToSize(label, 210);
       doc.text(namaLines, col1, y);
-      doc.text(String(it.cbm), col2, y, {align:'right'});
+      doc.text(String(it.qty) + ' ' + it.unit, col2, y, {align:'right'});
       doc.text('Rp' + Math.round(it.tarif).toLocaleString('id-ID'), col3, y, {align:'right'});
       doc.text('Rp' + Math.round(it.ongkir).toLocaleString('id-ID'), col4, y, {align:'right'});
       y += Math.max(16, namaLines.length * 13);
