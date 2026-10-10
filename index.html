@@ -164,6 +164,33 @@
   }
   .bottom-nav-btn .bn-icon{font-size:18px;line-height:1;}
   .bottom-nav-btn.active{color:var(--navy);border-top-color:var(--orange);background:var(--sky);}
+  .bottom-nav-btn[hidden]{display:none;}
+
+  .user-chip{flex:none;display:flex;align-items:center;gap:6px;min-width:0;max-width:55%;}
+  .user-chip[hidden]{display:none;}
+  .user-chip-name{font-size:10.5px;font-weight:700;color:#EAF2FB;background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.3);padding:4px 9px;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+  .user-chip-logout{flex:none;font-family:'Inter',sans-serif;font-size:10px;font-weight:700;color:var(--navy);background:#fff;border:none;padding:5px 9px;border-radius:999px;cursor:pointer;}
+
+  .auth-screen{position:absolute;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;background:linear-gradient(160deg,var(--navy) 0%,var(--ocean) 100%);overflow-y:auto;}
+  .auth-screen[hidden]{display:none;}
+  .auth-card{width:100%;max-width:360px;background:#fff;border-radius:18px;padding:24px 20px;box-shadow:0 18px 40px rgba(0,0,0,0.25);}
+  .auth-logo{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:14px;}
+  .auth-logo .wordmark{font-size:20px;}
+  .auth-title{font-size:18px;margin:0 0 4px;color:var(--navy);text-align:center;}
+  .auth-sub{font-size:12px;color:var(--slate);text-align:center;margin:0 0 16px;}
+  .auth-status{font-size:12.5px;color:var(--slate);text-align:center;margin:6px 0;}
+  .auth-status:empty{display:none;}
+  .auth-error{font-size:11.5px;color:#B23A2E;background:#FDECEA;border:1px solid #F3B8AF;border-radius:8px;padding:8px 10px;margin-bottom:10px;}
+  .auth-error.is-info{color:#1E6B3A;background:#E6F5EC;border-color:#B7DFC5;}
+  .auth-link{display:block;margin:12px auto 0;background:none;border:none;color:var(--ocean);font-size:12px;font-weight:600;cursor:pointer;}
+  .field-row select{font-family:'Inter',sans-serif;font-size:13px;padding:8px 10px;border:1px solid #D7E2EE;border-radius:8px;background:#fff;color:var(--navy);width:100%;}
+
+  .hist-owner{font-size:10.5px;color:var(--ocean);font-weight:600;margin-bottom:4px;}
+  .hist-owner.is-orphan{color:#B4690E;}
+  .hist-badge-admin{background:#E8E1F7;color:#5B3FA8;}
+  .hist-badge-sales{background:#DDEBFB;color:var(--ocean);}
+  .hist-badge-nonaktif{background:#E7ECF2;color:var(--slate);}
+  .hist-card.is-inactive{opacity:0.65;}
 </style>
 </head>
 <body>
@@ -181,8 +208,33 @@
         <div class="app-header-sub">Kalkulator Quotation</div>
       </div>
     </div>
-    <div class="app-header-badge">Privat · Tim</div>
+    <div class="user-chip" id="user-chip" hidden>
+      <span class="user-chip-name" id="user-chip-name">-</span>
+      <button type="button" class="user-chip-logout" id="logout-btn">Keluar</button>
+    </div>
   </header>
+
+  <div class="auth-screen" id="auth-screen">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="orbit-mark">
+          <div class="orbit-badge"><span>D</span></div>
+          <div class="orbit-ball"></div>
+        </div>
+        <div class="wordmark" style="color:var(--navy);">D<span class="dot">.</span><span class="link" style="color:var(--ocean);">Link</span></div>
+      </div>
+      <p class="auth-status" id="auth-status">Memeriksa sesi…</p>
+      <form id="login-form" hidden>
+        <h2 class="auth-title">Masuk</h2>
+        <p class="auth-sub">Gunakan akun yang dibuatkan admin tim.</p>
+        <div class="field-row"><label for="login-email">Email</label><input type="email" id="login-email" autocomplete="username" required></div>
+        <div class="field-row"><label for="login-password">Password</label><input type="password" id="login-password" autocomplete="current-password" required></div>
+        <div class="auth-error" id="login-error" hidden></div>
+        <button type="submit" class="btn btn-primary" id="login-btn" style="width:100%;">Masuk</button>
+        <button type="button" class="auth-link" id="forgot-btn">Lupa password?</button>
+      </form>
+    </div>
+  </div>
 
   <main class="app-content" id="app-content">
 
@@ -348,6 +400,26 @@
       <div class="footer-note">🔒 Untuk akses internal tim D.Link — jangan dibagikan ke publik.</div>
     </section>
 
+    <!-- ═══ HALAMAN KELOLA TIM (khusus admin) ═══ -->
+    <section class="page" id="page-tim">
+      <h2 class="page-title">👥 Kelola Tim</h2>
+      <p class="intro">Khusus admin. Tambah akun anggota, atur role, nonaktifkan akun, atau kirim email reset password.</p>
+      <div class="calc-card">
+        <h3>Tambah Anggota</h3>
+        <form id="add-member-form">
+          <div class="field-row"><label for="member-nama">Nama (tampil di quotation &amp; invoice)</label><input type="text" id="member-nama" required></div>
+          <div class="field-row"><label for="member-email">Email</label><input type="email" id="member-email" autocomplete="off" required></div>
+          <div class="field-grid">
+            <div class="field-row"><label for="member-password">Password awal (min. 6)</label><input type="text" id="member-password" minlength="6" autocomplete="off" required></div>
+            <div class="field-row"><label for="member-role">Role</label><select id="member-role"><option value="sales">Sales</option><option value="admin">Admin</option></select></div>
+          </div>
+          <button type="submit" class="btn btn-primary" id="add-member-btn" style="width:100%;">+ Tambah Anggota</button>
+        </form>
+      </div>
+      <div id="member-list"><p class="hist-empty">Memuat anggota…</p></div>
+      <div class="footer-note">🔒 Untuk akses internal tim D.Link — jangan dibagikan ke publik.</div>
+    </section>
+
     <template id="item-template">
       <div class="item-row">
         <div class="item-row-head">
@@ -472,6 +544,9 @@
     </button>
     <button type="button" class="bottom-nav-btn" data-page="invoice" role="tab" aria-selected="false">
       <span class="bn-icon">🧾</span><span>Invoice</span>
+    </button>
+    <button type="button" class="bottom-nav-btn" data-page="tim" role="tab" aria-selected="false" id="nav-tim" hidden>
+      <span class="bn-icon">👥</span><span>Tim</span>
     </button>
   </nav>
 </div>
@@ -893,9 +968,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
   };
   var fbApp = firebase.initializeApp(firebaseConfig);
   var db = firebase.firestore();
-  var fbReady = firebase.auth().signInAnonymously().catch(function(err){
-    console.error('Firebase auth gagal:', err);
-  });
+  var fbAuth = firebase.auth();
 </script>
 
 <script>
@@ -1126,6 +1199,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     lines.push(quoteNo);
     lines.push('Tanggal: ' + fmtDate(today) + ' \u00b7 Berlaku s/d: ' + fmtDate(berlakuDate));
     lines.push('Kepada: ' + custName + (custKontak ? (' (' + custKontak + ')') : ''));
+    lines.push('Sales: ' + salesName(null));
     lines.push('');
     lines.push('*Rincian Barang:*');
     items.forEach(function(it){
@@ -1204,6 +1278,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     doc.setFont('helvetica','normal');
     var kepadaText = d.custName + (d.custKontak ? ('  (' + d.custKontak + ')') : '');
     doc.text(kepadaText, marginX + 50, y);
+    doc.setFontSize(9.5); doc.setTextColor(slate[0],slate[1],slate[2]); doc.text('Sales: ' + salesName(null), pageWidth - marginX, y, {align:'right'}); doc.setTextColor(navy[0],navy[1],navy[2]); doc.setFontSize(10.5);
     y += 22;
 
     var col1 = marginX, col2 = marginX + 260, col3 = marginX + 340, col4 = pageWidth - marginX;
@@ -1459,6 +1534,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     lines.push(quoteNo);
     lines.push('Tanggal: ' + fmtDate(today) + ' · Berlaku s/d: ' + fmtDate(berlakuDate));
     lines.push('Kepada: ' + custName + (custKontak ? (' (' + custKontak + ')') : ''));
+    lines.push('Sales: ' + salesName(null));
     lines.push('');
     lines.push('*Rincian Ongkir:*');
     items.forEach(function(it){
@@ -1525,6 +1601,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     doc.text('Kepada:', marginX, y);
     doc.setFont('helvetica','normal');
     doc.text(d.custName + (d.custKontak ? ('  (' + d.custKontak + ')') : ''), marginX + 50, y);
+    doc.setFontSize(9.5); doc.setTextColor(slate[0],slate[1],slate[2]); doc.text('Sales: ' + salesName(null), pageWidth - marginX, y, {align:'right'}); doc.setTextColor(navy[0],navy[1],navy[2]); doc.setFontSize(10.5);
     y += 22;
 
     var col1 = marginX, col2 = marginX + 240, col3 = marginX + 360, col4 = pageWidth - marginX;
@@ -1605,19 +1682,19 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
   var pages = document.querySelectorAll('.page');
   var navBtns = document.querySelectorAll('.bottom-nav-btn');
   var appContent = document.getElementById('app-content');
-  navBtns.forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var target = btn.getAttribute('data-page');
-      navBtns.forEach(function(b){
-        var isActive = b === btn;
-        b.classList.toggle('active', isActive);
-        b.setAttribute('aria-selected', isActive ? 'true' : 'false');
-      });
-      pages.forEach(function(p){
-        p.classList.toggle('active', p.id === 'page-' + target);
-      });
-      if (appContent) appContent.scrollTop = 0;
+  function goToPage(target){
+    navBtns.forEach(function(b){
+      var isActive = b.getAttribute('data-page') === target;
+      b.classList.toggle('active', isActive);
+      b.setAttribute('aria-selected', isActive ? 'true' : 'false');
     });
+    pages.forEach(function(p){
+      p.classList.toggle('active', p.id === 'page-' + target);
+    });
+    if (appContent) appContent.scrollTop = 0;
+  }
+  navBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){ goToPage(btn.getAttribute('data-page')); });
   });
 
   // ═══ RIWAYAT QUOTATION & INVOICE (Firebase) ═══
@@ -1655,6 +1732,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       lines.push(d.quoteNo);
       lines.push('Tanggal: ' + d.tanggal + ' · Berlaku s/d: ' + d.berlaku);
       lines.push('Kepada: ' + d.custName + (d.custKontak ? (' (' + d.custKontak + ')') : ''));
+      lines.push('Sales: ' + salesName(d));
       lines.push('');
       lines.push('*Rincian Barang:*');
       (d.items || []).forEach(function(it){
@@ -1673,6 +1751,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       lines.push(d.quoteNo);
       lines.push('Tanggal: ' + d.tanggal + ' · Berlaku s/d: ' + d.berlaku);
       lines.push('Kepada: ' + d.custName + (d.custKontak ? (' (' + d.custKontak + ')') : ''));
+      lines.push('Sales: ' + salesName(d));
       lines.push('');
       lines.push('*Rincian Ongkir:*');
       (d.items || []).forEach(function(it){
@@ -1696,6 +1775,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     lines.push(inv.invNo);
     lines.push('Tanggal: ' + inv.tanggal + ' · Ref Quotation: ' + inv.quoteNo);
     lines.push('Kepada: ' + inv.custName + (inv.custKontak ? (' (' + inv.custKontak + ')') : ''));
+    lines.push('Sales: ' + salesName(inv));
     lines.push('');
     if (inv.calcType === 'barang') {
       lines.push('*Rincian Barang:*');
@@ -1747,6 +1827,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     doc.setTextColor(navy[0],navy[1],navy[2]); doc.setFontSize(10.5); doc.setFont('helvetica','bold');
     doc.text('Kepada:', marginX, y); doc.setFont('helvetica','normal');
     doc.text(d.custName + (d.custKontak ? ('  (' + d.custKontak + ')') : ''), marginX + 50, y);
+    doc.setFontSize(9.5); doc.setTextColor(slate[0],slate[1],slate[2]); doc.text('Sales: ' + salesName(d), pageWidth - marginX, y, {align:'right'}); doc.setTextColor(navy[0],navy[1],navy[2]); doc.setFontSize(10.5);
     y += 22;
 
     var col1 = marginX, col4 = pageWidth - marginX, col2, col3;
@@ -1818,15 +1899,66 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     showToast('PDF quotation terunduh!');
   }
 
-  function saveQuotationToHistory(calcType, data){
-    fbReady.then(function(){
-      var payload = Object.assign({}, data, {
-        calcType: calcType,
-        status: 'draft',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  // ═══ AKUN PENGGUNA ═══
+  // currentUser diisi setelah login & profil users/{uid} aktif: {uid, name, email, role}
+  var currentUser = null;
+  var memberCache = {}; // uid -> profil anggota (khusus admin, untuk tetapkan pemilik)
+
+  function isAdmin(){ return !!currentUser && currentUser.role === 'admin'; }
+
+  function userStamp(){
+    return { uid: currentUser.uid, name: currentUser.name, email: currentUser.email };
+  }
+
+  function salesName(d){
+    if (d && d.createdBy && d.createdBy.name) return d.createdBy.name;
+    if (d) return '-';
+    return currentUser ? currentUser.name : '-';
+  }
+
+  // Urutkan terbaru dulu di sisi browser, supaya query sales (filter ownerUid)
+  // tidak butuh composite index di Firestore.
+  function sortedDocs(snapshot){
+    var list = [];
+    snapshot.forEach(function(docSnap){
+      list.push({ id: docSnap.id, data: docSnap.data({ serverTimestamps: 'estimate' }) });
+    });
+    list.sort(function(a, b){
+      var ta = a.data.createdAt && a.data.createdAt.toMillis ? a.data.createdAt.toMillis() : 0;
+      var tb = b.data.createdAt && b.data.createdAt.toMillis ? b.data.createdAt.toMillis() : 0;
+      return tb - ta;
+    });
+    return list;
+  }
+
+  // Baris "Dibuat oleh"; admin bisa menetapkan pemilik untuk data lama yang belum punya akun.
+  function ownerHtml(d){
+    if (d.ownerUid) {
+      return '<div class="hist-owner">👤 ' + escapeHtml(salesName(d)) + '</div>';
+    }
+    var html = '<div class="hist-owner is-orphan">👤 Tanpa akun (data lama)</div>';
+    if (isAdmin()) {
+      html += '<div class="hist-row"><select class="hist-owner-select"><option value="">Tetapkan pemilik…</option>';
+      Object.keys(memberCache).forEach(function(uid){
+        var m = memberCache[uid];
+        html += '<option value="' + uid + '">' + escapeHtml(m.name || m.email) + '</option>';
       });
-      return db.collection('quotations').add(payload);
-    }).then(function(){
+      html += '</select></div>';
+    }
+    return html;
+  }
+
+  function saveQuotationToHistory(calcType, data){
+    if (!currentUser) { showToast('Login dulu untuk menyimpan quotation'); return; }
+    var payload = Object.assign({}, data, {
+      calcType: calcType,
+      status: 'draft',
+      ownerUid: currentUser.uid,
+      createdBy: userStamp(),
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    db.collection('quotations').add(payload).then(function(){
       showToast('Tersimpan ke Quotation List');
     }).catch(function(err){
       console.error('Gagal simpan riwayat:', err);
@@ -1850,12 +1982,13 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       return;
     }
     var html = '';
-    snapshot.forEach(function(docSnap){
-      var d = docSnap.data();
+    sortedDocs(snapshot).forEach(function(entry){
+      var d = entry.data;
       var status = d.status || 'draft';
       var canConvert = status === 'deal' && !d.invoiceNo;
-      html += '<div class="hist-card" data-id="' + docSnap.id + '">';
+      html += '<div class="hist-card" data-id="' + entry.id + '">';
       html += '<div class="hist-card-head"><div><div class="hist-no">' + escapeHtml(d.quoteNo || '-') + ' <span style="font-weight:400;color:var(--slate);">(' + (d.calcType === 'barang' ? 'Barang' : 'Ongkir') + ')</span></div><div class="hist-date">' + escapeHtml(d.tanggal || '') + '</div></div><span class="hist-badge hist-badge-' + status + '">' + STATUS_LABEL[status] + '</span></div>';
+      html += ownerHtml(d);
       html += '<div class="hist-cust">' + escapeHtml(d.custName || '-') + (d.custKontak ? (' &middot; ' + escapeHtml(d.custKontak)) : '') + '</div>';
       html += '<div class="hist-grand">' + formatRp(d.grand) + '</div>';
       html += '<details><summary style="font-size:11px;color:var(--ocean);cursor:pointer;">Lihat rincian</summary><div style="font-size:11px;color:var(--slate);margin-top:6px;">' + histItemsHtml(d.calcType, d.items) + '</div></details>';
@@ -1886,11 +2019,12 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       return;
     }
     var html = '';
-    snapshot.forEach(function(docSnap){
-      var d = docSnap.data();
+    sortedDocs(snapshot).forEach(function(entry){
+      var d = entry.data;
       var pay = d.paymentStatus || 'belum';
-      html += '<div class="hist-card" data-id="' + docSnap.id + '">';
+      html += '<div class="hist-card" data-id="' + entry.id + '">';
       html += '<div class="hist-card-head"><div><div class="hist-no">' + escapeHtml(d.invNo || '-') + '</div><div class="hist-date">' + escapeHtml(d.tanggal || '') + '</div></div><span class="hist-badge hist-badge-' + pay + '">' + PAYMENT_LABEL[pay] + '</span></div>';
+      html += ownerHtml(d);
       html += '<div class="hist-ref">Ref Quotation: ' + escapeHtml(d.quoteNo || '-') + '</div>';
       html += '<div class="hist-cust">' + escapeHtml(d.custName || '-') + (d.custKontak ? (' &middot; ' + escapeHtml(d.custKontak)) : '') + '</div>';
       html += '<div class="hist-grand">' + formatRp(d.grand) + '</div>';
@@ -1917,11 +2051,18 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
   function convertQuotationToInvoice(id, d){
     if (d.invoiceNo) return;
     var invNo = genInvoiceNo();
+    var now = firebase.firestore.FieldValue.serverTimestamp();
+    // Invoice tetap milik sales pembuat quotation (untuk rekap CRM), walau di-convert admin.
     var invoiceData = {
-      invNo: invNo, quoteNo: d.quoteNo, calcType: d.calcType,
+      invNo: invNo, quoteNo: d.quoteNo, quotationId: id, calcType: d.calcType,
       tanggal: fmtDate(new Date()), custName: d.custName, custKontak: d.custKontak,
       items: d.items, noteText: d.noteText, paymentStatus: 'belum', grand: d.grand,
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      ownerUid: d.ownerUid || '',
+      createdBy: d.createdBy || null,
+      convertedBy: userStamp(),
+      dealAt: d.dealAt || now,
+      createdAt: now,
+      updatedAt: now
     };
     if (d.calcType === 'barang') {
       invoiceData.totalBarang = d.totalBarang; invoiceData.ongkirCustomer = d.ongkirCustomer; invoiceData.domestik = d.domestik || 0;
@@ -1964,6 +2105,7 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     doc.setTextColor(navy[0],navy[1],navy[2]); doc.setFontSize(10.5); doc.setFont('helvetica','bold');
     doc.text('Kepada:', marginX, y); doc.setFont('helvetica','normal');
     doc.text(inv.custName + (inv.custKontak ? ('  (' + inv.custKontak + ')') : ''), marginX + 50, y);
+    doc.setFontSize(9.5); doc.setTextColor(slate[0],slate[1],slate[2]); doc.text('Sales: ' + salesName(inv), pageWidth - marginX, y, {align:'right'}); doc.setTextColor(navy[0],navy[1],navy[2]); doc.setFontSize(10.5);
     y += 22;
 
     var col1 = marginX, col4 = pageWidth - marginX, col2, col3;
@@ -2106,17 +2248,46 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
       db.collection('quotations').doc(id).get().then(function(docSnap){
         var d = docSnap.data();
         if (d && (d.status || 'draft') === 'draft') {
-          db.collection('quotations').doc(id).update({status: 'terkirim'}).catch(function(){});
+          db.collection('quotations').doc(id).update(statusUpdate('terkirim')).catch(function(){});
         }
       });
     }
   });
+  function statusUpdate(newStatus){
+    var now = firebase.firestore.FieldValue.serverTimestamp();
+    var upd = { status: newStatus, statusUpdatedAt: now, updatedAt: now, updatedBy: userStamp() };
+    if (newStatus === 'terkirim') upd.sentAt = now;
+    if (newStatus === 'deal') upd.dealAt = now;
+    if (newStatus === 'batal') upd.cancelledAt = now;
+    return upd;
+  }
+
+  function assignOwner(collection, id, uid){
+    var m = memberCache[uid];
+    if (!m) return;
+    db.collection(collection).doc(id).update({
+      ownerUid: uid,
+      createdBy: { uid: uid, name: m.name || m.email, email: m.email || '' },
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedBy: userStamp()
+    }).then(function(){
+      showToast('Pemilik ditetapkan: ' + (m.name || m.email));
+    }).catch(function(err){
+      console.error('Assign owner error:', err);
+      showToast('Gagal tetapkan pemilik: ' + (err && err.code ? err.code : 'error'));
+    });
+  }
+
   histQuotationList.addEventListener('change', function(e){
+    if (e.target.classList.contains('hist-owner-select')) {
+      if (e.target.value) assignOwner('quotations', e.target.closest('.hist-card').getAttribute('data-id'), e.target.value);
+      return;
+    }
     if (!e.target.classList.contains('hist-status-select')) return;
     var card = e.target.closest('.hist-card');
     var id = card.getAttribute('data-id');
     var newStatus = e.target.value;
-    db.collection('quotations').doc(id).update({status: newStatus}).then(function(){
+    db.collection('quotations').doc(id).update(statusUpdate(newStatus)).then(function(){
       if (newStatus === 'deal') {
         return db.collection('quotations').doc(id).get().then(function(docSnap){
           var d = docSnap.data();
@@ -2153,20 +2324,341 @@ function(t){t.__bidiEngine__=t.prototype.__bidiEngine__=function(t){var r,n,i,a,
     // tidak perlu action tambahan.
   });
   histInvoiceList.addEventListener('change', function(e){
+    if (e.target.classList.contains('hist-owner-select')) {
+      if (e.target.value) assignOwner('invoices', e.target.closest('.hist-card').getAttribute('data-id'), e.target.value);
+      return;
+    }
     if (!e.target.classList.contains('hist-payment-select')) return;
     var card = e.target.closest('.hist-card');
     var id = card.getAttribute('data-id');
-    db.collection('invoices').doc(id).update({paymentStatus: e.target.value}).catch(function(err){ console.error(err); });
+    var pay = e.target.value;
+    var now = firebase.firestore.FieldValue.serverTimestamp();
+    var upd = { paymentStatus: pay, paymentUpdatedAt: now, updatedAt: now, updatedBy: userStamp() };
+    if (pay === 'dp') upd.dpAt = now;
+    upd.paidAt = pay === 'lunas' ? now : null;
+    db.collection('invoices').doc(id).update(upd).catch(function(err){
+      console.error(err); showToast('Gagal update status bayar');
+    });
   });
 
-  fbReady.then(function(){
-    db.collection('quotations').orderBy('createdAt','desc').onSnapshot(renderQuotationHistory, function(err){
+  // ═══ LOGIN & SESI ═══
+  var authScreen = document.getElementById('auth-screen');
+  var authStatus = document.getElementById('auth-status');
+  var loginForm = document.getElementById('login-form');
+  var loginEmail = document.getElementById('login-email');
+  var loginPassword = document.getElementById('login-password');
+  var loginError = document.getElementById('login-error');
+  var loginBtn = document.getElementById('login-btn');
+  var forgotBtn = document.getElementById('forgot-btn');
+  var userChip = document.getElementById('user-chip');
+  var userChipName = document.getElementById('user-chip-name');
+  var logoutBtn = document.getElementById('logout-btn');
+  var navTim = document.getElementById('nav-tim');
+  var memberList = document.getElementById('member-list');
+  var addMemberForm = document.getElementById('add-member-form');
+  var addMemberBtn = document.getElementById('add-member-btn');
+
+  var unsubscribers = [];
+  var pendingAuthMsg = null;
+  var lastQuoteSnap = null, lastInvSnap = null;
+
+  function authErrorText(err){
+    var code = err && err.code ? err.code : '';
+    var map = {
+      'auth/invalid-credential': 'Email atau password salah.',
+      'auth/invalid-login-credentials': 'Email atau password salah.',
+      'auth/wrong-password': 'Email atau password salah.',
+      'auth/user-not-found': 'Email atau password salah.',
+      'auth/invalid-email': 'Format email tidak valid.',
+      'auth/user-disabled': 'Akun ini dinonaktifkan.',
+      'auth/too-many-requests': 'Terlalu banyak percobaan. Coba lagi beberapa menit lagi.',
+      'auth/network-request-failed': 'Tidak ada koneksi internet.',
+      'auth/operation-not-allowed': 'Login email/password belum diaktifkan di Firebase Console.',
+      'auth/email-already-in-use': 'Email ini sudah terdaftar.',
+      'auth/weak-password': 'Password minimal 6 karakter.'
+    };
+    return map[code] || ('Gagal (' + (code || 'error') + ').');
+  }
+
+  function setLoginMessage(msg, isInfo){
+    loginError.hidden = !msg;
+    loginError.textContent = msg || '';
+    loginError.classList.toggle('is-info', !!isInfo);
+  }
+
+  function showAuthStatus(text){
+    authScreen.hidden = false;
+    loginForm.hidden = true;
+    authStatus.textContent = text;
+  }
+
+  function showLogin(msg){
+    authScreen.hidden = false;
+    authStatus.textContent = '';
+    loginForm.hidden = false;
+    loginBtn.disabled = false;
+    loginBtn.textContent = 'Masuk';
+    setLoginMessage(msg);
+  }
+
+  function signOutWithMessage(msg){
+    pendingAuthMsg = msg;
+    fbAuth.signOut();
+  }
+
+  function stopListeners(){
+    unsubscribers.forEach(function(unsub){ try { unsub(); } catch(e){} });
+    unsubscribers = [];
+  }
+
+  function resetSessionUi(){
+    userChip.hidden = true;
+    navTim.hidden = true;
+    histQuotationList.innerHTML = '<p class="hist-empty">Memuat riwayat…</p>';
+    histInvoiceList.innerHTML = '<p class="hist-empty">Memuat riwayat…</p>';
+    memberList.innerHTML = '<p class="hist-empty">Memuat anggota…</p>';
+    // Bersihkan isian kalkulator supaya user berikutnya di device yang sama tidak melihatnya.
+    resetBtn.click();
+    shipResetBtn.click();
+    goToPage('kalkulator');
+  }
+
+  function enterApp(){
+    authScreen.hidden = true;
+    userChip.hidden = false;
+    userChipName.textContent = currentUser.name + ' · ' + (isAdmin() ? 'Admin' : 'Sales');
+    navTim.hidden = !isAdmin();
+    if (!isAdmin() && document.getElementById('page-tim').classList.contains('active')) goToPage('kalkulator');
+    startListeners();
+  }
+
+  function startListeners(){
+    var uid = currentUser.uid;
+
+    // Pantau profil sendiri: kalau dinonaktifkan atau role berubah, sesi ikut menyesuaikan.
+    unsubscribers.push(db.collection('users').doc(uid).onSnapshot(function(snap){
+      if (!snap.exists || snap.data().active === false) {
+        signOutWithMessage('Akun kamu dinonaktifkan admin.');
+        return;
+      }
+      var p = snap.data();
+      var role = p.role === 'admin' ? 'admin' : 'sales';
+      currentUser.name = p.name || currentUser.email;
+      if (role !== currentUser.role) {
+        currentUser.role = role;
+        stopListeners();
+        enterApp();
+        return;
+      }
+      userChipName.textContent = currentUser.name + ' · ' + (isAdmin() ? 'Admin' : 'Sales');
+    }, function(err){ console.error('Listen profil error:', err); }));
+
+    // Admin melihat semua data; sales hanya miliknya sendiri.
+    var quoteRef = isAdmin() ? db.collection('quotations') : db.collection('quotations').where('ownerUid', '==', uid);
+    var invRef = isAdmin() ? db.collection('invoices') : db.collection('invoices').where('ownerUid', '==', uid);
+
+    unsubscribers.push(quoteRef.onSnapshot(function(snap){
+      lastQuoteSnap = snap;
+      renderQuotationHistory(snap);
+    }, function(err){
       console.error('Listen quotations error:', err);
-      histQuotationList.innerHTML = '<p class="hist-empty">Gagal memuat riwayat (cek koneksi/izin Firestore).</p>';
-    });
-    db.collection('invoices').orderBy('createdAt','desc').onSnapshot(renderInvoiceHistory, function(err){
+      histQuotationList.innerHTML = '<p class="hist-empty">Gagal memuat quotation (' + escapeHtml(err.code || 'error') + ').</p>';
+    }));
+
+    unsubscribers.push(invRef.onSnapshot(function(snap){
+      lastInvSnap = snap;
+      renderInvoiceHistory(snap);
+    }, function(err){
       console.error('Listen invoices error:', err);
-      histInvoiceList.innerHTML = '<p class="hist-empty">Gagal memuat riwayat invoice.</p>';
+      histInvoiceList.innerHTML = '<p class="hist-empty">Gagal memuat invoice (' + escapeHtml(err.code || 'error') + ').</p>';
+    }));
+
+    if (isAdmin()) {
+      unsubscribers.push(db.collection('users').onSnapshot(function(snap){
+        renderMembers(snap);
+        // Pilihan "Tetapkan pemilik" bergantung daftar anggota, jadi render ulang list.
+        if (lastQuoteSnap) renderQuotationHistory(lastQuoteSnap);
+        if (lastInvSnap) renderInvoiceHistory(lastInvSnap);
+      }, function(err){
+        console.error('Listen users error:', err);
+        memberList.innerHTML = '<p class="hist-empty">Gagal memuat anggota (' + escapeHtml(err.code || 'error') + ').</p>';
+      }));
+    }
+  }
+
+  fbAuth.onAuthStateChanged(function(user){
+    stopListeners();
+    currentUser = null;
+    memberCache = {};
+    lastQuoteSnap = null;
+    lastInvSnap = null;
+
+    if (!user) {
+      var msg = pendingAuthMsg;
+      pendingAuthMsg = null;
+      resetSessionUi();
+      showLogin(msg);
+      return;
+    }
+    if (user.isAnonymous) {
+      // Sisa sesi anonim dari versi lama app.
+      fbAuth.signOut();
+      return;
+    }
+
+    showAuthStatus('Memuat profil…');
+    db.collection('users').doc(user.uid).get().then(function(snap){
+      if (!snap.exists) { signOutWithMessage('Akun ini belum terdaftar di tim. Hubungi admin.'); return; }
+      var p = snap.data();
+      if (p.active === false) { signOutWithMessage('Akun ini dinonaktifkan. Hubungi admin.'); return; }
+      currentUser = {
+        uid: user.uid,
+        name: p.name || user.email,
+        email: user.email,
+        role: p.role === 'admin' ? 'admin' : 'sales'
+      };
+      enterApp();
+    }).catch(function(err){
+      console.error('Load profil error:', err);
+      signOutWithMessage('Gagal memuat profil (' + (err.code || 'error') + ').');
+    });
+  });
+
+  loginForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    setLoginMessage('');
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Memproses…';
+    fbAuth.signInWithEmailAndPassword(loginEmail.value.trim(), loginPassword.value).then(function(){
+      loginPassword.value = '';
+    }).catch(function(err){
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Masuk';
+      setLoginMessage(authErrorText(err));
+    });
+  });
+
+  forgotBtn.addEventListener('click', function(){
+    var email = loginEmail.value.trim();
+    if (!email) { setLoginMessage('Isi email dulu, lalu klik "Lupa password?".'); return; }
+    fbAuth.sendPasswordResetEmail(email).then(function(){
+      setLoginMessage('Link reset password dikirim ke ' + email + '. Cek inbox atau folder spam.', true);
+    }).catch(function(err){
+      setLoginMessage(authErrorText(err));
+    });
+  });
+
+  logoutBtn.addEventListener('click', function(){ fbAuth.signOut(); });
+
+  // ═══ KELOLA TIM (admin) ═══
+  // Akun anggota dibuat lewat instance Firebase kedua, supaya sesi admin tidak ikut
+  // berganti ke akun baru (Firebase Spark tidak punya server untuk membuat akun).
+  var memberCreateApp = null;
+  function memberCreateAuth(){
+    if (!memberCreateApp) memberCreateApp = firebase.initializeApp(firebaseConfig, 'member-create');
+    return memberCreateApp.auth();
+  }
+
+  function renderMembers(snapshot){
+    memberCache = {};
+    var list = [];
+    snapshot.forEach(function(docSnap){
+      memberCache[docSnap.id] = docSnap.data();
+      list.push({ id: docSnap.id, m: docSnap.data() });
+    });
+    if (!list.length) { memberList.innerHTML = '<p class="hist-empty">Belum ada anggota.</p>'; return; }
+    list.sort(function(a, b){ return String(a.m.name || '').localeCompare(String(b.m.name || '')); });
+
+    var html = '';
+    list.forEach(function(entry){
+      var m = entry.m;
+      var isSelf = currentUser && entry.id === currentUser.uid;
+      var active = m.active !== false;
+      var role = m.role === 'admin' ? 'admin' : 'sales';
+      html += '<div class="hist-card' + (active ? '' : ' is-inactive') + '" data-uid="' + entry.id + '">';
+      html += '<div class="hist-card-head"><div><div class="hist-no">' + escapeHtml(m.name || '-') + (isSelf ? ' <span style="font-weight:400;color:var(--slate);">(kamu)</span>' : '') + '</div><div class="hist-date">' + escapeHtml(m.email || '') + '</div></div>';
+      html += '<span class="hist-badge hist-badge-' + (active ? role : 'nonaktif') + '">' + (active ? (role === 'admin' ? 'Admin' : 'Sales') : 'Nonaktif') + '</span></div>';
+      html += '<div class="hist-row">';
+      html += '<select class="member-role-select"' + (isSelf ? ' disabled title="Tidak bisa mengubah role sendiri"' : '') + '>';
+      html += '<option value="sales"' + (role === 'sales' ? ' selected' : '') + '>Sales</option>';
+      html += '<option value="admin"' + (role === 'admin' ? ' selected' : '') + '>Admin</option></select>';
+      if (!isSelf) html += '<button type="button" class="btn btn-outline member-toggle-btn">' + (active ? '🚫 Nonaktifkan' : '✅ Aktifkan') + '</button>';
+      html += '<button type="button" class="btn btn-navy2 member-reset-btn">🔑 Reset Password</button>';
+      html += '</div></div>';
+    });
+    memberList.innerHTML = html;
+  }
+
+  addMemberForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    if (!isAdmin()) return;
+    var name = document.getElementById('member-nama').value.trim();
+    var email = document.getElementById('member-email').value.trim();
+    var password = document.getElementById('member-password').value;
+    var role = document.getElementById('member-role').value === 'admin' ? 'admin' : 'sales';
+    if (!name) { showToast('Nama wajib diisi'); return; }
+    if (password.length < 6) { showToast('Password minimal 6 karakter'); return; }
+
+    addMemberBtn.disabled = true;
+    addMemberBtn.textContent = 'Membuat akun…';
+    var createAuth = memberCreateAuth();
+    createAuth.setPersistence(firebase.auth.Auth.Persistence.NONE).then(function(){
+      return createAuth.createUserWithEmailAndPassword(email, password);
+    }).then(function(cred){
+      return db.collection('users').doc(cred.user.uid).set({
+        name: name,
+        email: email,
+        role: role,
+        active: true,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdBy: userStamp()
+      });
+    }).then(function(){
+      return createAuth.signOut();
+    }).then(function(){
+      addMemberForm.reset();
+      showToast('Akun ' + name + ' dibuat');
+    }).catch(function(err){
+      console.error('Tambah anggota error:', err);
+      showToast(err && err.code && err.code.indexOf('auth/') === 0 ? authErrorText(err) : 'Gagal tambah anggota (' + (err && err.code ? err.code : 'error') + ')');
+    }).then(function(){
+      addMemberBtn.disabled = false;
+      addMemberBtn.textContent = '+ Tambah Anggota';
+    });
+  });
+
+  memberList.addEventListener('click', function(e){
+    var card = e.target.closest('.hist-card');
+    if (!card || !isAdmin()) return;
+    var uid = card.getAttribute('data-uid');
+    var m = memberCache[uid];
+    if (!m) return;
+    if (e.target.closest('.member-toggle-btn')) {
+      if (uid === currentUser.uid) return;
+      var nextActive = m.active === false;
+      db.collection('users').doc(uid).update({ active: nextActive, updatedBy: userStamp() }).then(function(){
+        showToast((m.name || m.email) + (nextActive ? ' diaktifkan' : ' dinonaktifkan'));
+      }).catch(function(err){
+        console.error(err); showToast('Gagal ubah status akun');
+      });
+    } else if (e.target.closest('.member-reset-btn')) {
+      fbAuth.sendPasswordResetEmail(m.email).then(function(){
+        showToast('Email reset password dikirim ke ' + m.email);
+      }).catch(function(err){
+        console.error(err); showToast(authErrorText(err));
+      });
+    }
+  });
+
+  memberList.addEventListener('change', function(e){
+    if (!e.target.classList.contains('member-role-select') || !isAdmin()) return;
+    var uid = e.target.closest('.hist-card').getAttribute('data-uid');
+    if (uid === currentUser.uid) return;
+    var role = e.target.value === 'admin' ? 'admin' : 'sales';
+    db.collection('users').doc(uid).update({ role: role, updatedBy: userStamp() }).then(function(){
+      showToast('Role diubah jadi ' + (role === 'admin' ? 'Admin' : 'Sales'));
+    }).catch(function(err){
+      console.error(err); showToast('Gagal ubah role');
     });
   });
 })();
